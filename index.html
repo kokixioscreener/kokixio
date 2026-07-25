@@ -1108,7 +1108,7 @@ function openScreen(id){
     document.getElementById('page-dashboard').scrollTop=0;
     var idt=document.getElementById('dashIdxTicker');if(idt)idt.style.display='flex';
   }else if(id==='indices'||id.startsWith('idx:')){
-    var idtI=document.getElementById('dashIdxTicker');if(idtI)idtI.style.display='none';
+    var idtI=document.getElementById('dashIdxTicker');if(idtI)idtI.style.display='flex';
     document.getElementById('sp-dynamic').classList.add('active');
     document.getElementById('view-table').style.display='none';
     document.getElementById('view-heatmap').style.display='none';
@@ -1119,7 +1119,7 @@ function openScreen(id){
     else openIndexDetail(id.replace('idx:',''));
     document.getElementById('page-dashboard').scrollTop=0;
   }else{
-    var idtS=document.getElementById('dashIdxTicker');if(idtS)idtS.style.display='none';
+    var idtS=document.getElementById('dashIdxTicker');if(idtS)idtS.style.display='flex';
     // Restore normal table view (may have been hidden by indices view)
     var vt=document.getElementById('view-table');if(vt)vt.style.display='block';
     var vh=document.getElementById('view-heatmap');if(vh)vh.style.display='none';
