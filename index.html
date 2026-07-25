@@ -1,0 +1,2534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kokixio — Screen Smarter, Trade Sharper</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#080b12;--panel:#0f1420;--panel2:#141928;--panel3:#1a2235;
+  --border:#1e2a3d;--coral:#ff6b5b;--coral2:#ff8a7a;
+  --cyan:#00d4ff;--green:#10d98e;--red:#ff4757;
+  --amber:#ffa726;--text:#f0f4ff;--muted:#64748b;--dim:#1e293b;
+}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;overflow:hidden;height:100vh;}
+
+/* ─── NAV ─────────────────────────────────────────────── */
+nav{position:fixed;top:0;left:0;right:0;z-index:300;display:flex;align-items:center;justify-content:space-between;height:68px;padding:0 5%;background:rgba(8,11,18,.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);}
+.nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;}
+.logo-wordmark{font-family:'Orbitron',monospace;font-weight:700;font-size:20px;color:var(--text);letter-spacing:1px;}
+.logo-wordmark span{color:var(--coral);}
+.nav-center{display:flex;align-items:center;gap:4px;}
+.nav-item{position:relative;}
+.nav-btn{background:none;border:none;color:var(--muted);font-size:14px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;padding:8px 16px;border-radius:6px;display:flex;align-items:center;gap:5px;transition:color .2s,background .2s;}
+.nav-btn:hover,.nav-item:hover .nav-btn{color:var(--text);background:rgba(255,255,255,.05);}
+.nav-btn .arrow{font-size:10px;transition:transform .2s;}
+.nav-item:hover .arrow{transform:rotate(180deg);}
+.nav-right{display:flex;align-items:center;gap:12px;}
+.login-btn{background:none;border:1px solid var(--border);color:var(--text);padding:8px 18px;border-radius:6px;font-size:14px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s;}
+.login-btn:hover{border-color:var(--muted);}
+.open-btn{background:var(--coral);color:#fff;border:none;padding:10px 20px;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;text-decoration:none;transition:all .2s;}
+.open-btn:hover{background:var(--coral2);transform:translateY(-1px);}
+
+/* ─── MEGA DROPDOWN ────────────────────────────────────── */
+.dd-mega{
+  display:none;position:absolute;top:calc(100% + 8px);left:50%;
+  transform:translateX(-50%);
+  background:var(--panel2);border:1px solid var(--border);border-radius:18px;
+  padding:32px;min-width:900px;z-index:400;
+  box-shadow:0 32px 80px rgba(0,0,0,.8);
+}
+.nav-item:hover .dd-mega{display:grid;}
+.dd-mega.three-col{grid-template-columns:repeat(3,1fr);gap:32px;}
+.dd-mega.two-col{grid-template-columns:repeat(2,1fr);gap:32px;}
+.dd-col-title{font-size:12px;text-transform:uppercase;letter-spacing:1.5px;color:var(--coral);font-weight:700;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border);}
+.dd-link{display:flex;align-items:center;gap:13px;padding:12px 14px;border-radius:9px;text-decoration:none;color:var(--muted);font-size:15px;transition:all .15s;cursor:pointer;border:none;background:none;width:100%;text-align:left;font-family:'Inter',sans-serif;}
+.dd-link:hover{background:rgba(255,107,91,.08);color:var(--text);}
+.dd-link .ico{font-size:22px;width:30px;text-align:center;flex-shrink:0;}
+.dd-link .name{font-weight:500;}
+.dd-link .tag{margin-left:auto;font-size:11px;background:rgba(255,107,91,.12);color:var(--coral);border-radius:4px;padding:2px 8px;white-space:nowrap;}
+
+/* ─── PAGES ────────────────────────────────────────────── */
+.page{position:fixed;top:0;left:0;right:0;bottom:0;overflow-y:auto;background:var(--bg);display:none;}
+.page.active{display:block;}
+
+/* ─── LANDING ─────────────────────────────────────────── */
+#page-landing{display:block;}
+.hero{position:relative;height:100vh;display:flex;align-items:center;justify-content:center;text-align:center;overflow:hidden;}
+.candles{position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:center;gap:10px;padding:0 4%;pointer-events:none;}
+.hero-glow{position:absolute;inset:0;background:radial-gradient(ellipse 60% 50% at 50% 60%,rgba(255,107,91,.08) 0%,transparent 70%);}
+.hero-content{position:relative;z-index:2;max-width:820px;padding:0 24px;}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;background:rgba(255,107,91,.1);border:1px solid rgba(255,107,91,.25);border-radius:20px;padding:6px 16px;font-size:12px;font-weight:600;color:var(--coral);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:28px;}
+.eyebrow span{width:6px;height:6px;background:var(--coral);border-radius:50%;animation:pulse 1.5s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+h1{font-family:'Orbitron',monospace;font-size:clamp(38px,6vw,76px);font-weight:900;line-height:1.08;letter-spacing:-1px;margin-bottom:20px;}
+h1 em{color:var(--coral);font-style:normal;}
+.hero-sub{font-size:18px;color:var(--muted);line-height:1.6;max-width:560px;margin:0 auto 36px;}
+.hero-btns{display:flex;gap:14px;justify-content:center;}
+.btn-primary{background:var(--coral);color:#fff;padding:15px 34px;border-radius:8px;font-size:15px;font-weight:700;text-decoration:none;border:none;cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s;}
+.btn-primary:hover{background:var(--coral2);transform:translateY(-2px);box-shadow:0 8px 24px rgba(255,107,91,.35);}
+.btn-ghost{background:transparent;color:var(--text);padding:15px 34px;border-radius:8px;font-size:15px;font-weight:600;text-decoration:none;border:1px solid var(--border);cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s;}
+.btn-ghost:hover{border-color:var(--muted);}
+.hero-stats{position:absolute;bottom:40px;left:0;right:0;display:flex;justify-content:center;gap:52px;}
+.stat-val{font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:600;}
+.stat-lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-top:3px;}
+
+/* ─── TICKER ──────────────────────────────────────────── */
+.ticker{background:var(--panel);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:14px 0;overflow:hidden;}
+.ticker-inner{display:flex;gap:60px;animation:scroll 30s linear infinite;white-space:nowrap;width:max-content;}
+@keyframes scroll{0%{transform:translateX(0);}100%{transform:translateX(-50%);}}
+.tick-item{display:flex;align-items:center;gap:10px;font-family:'JetBrains Mono',monospace;font-size:13px;}
+.tick-item .sym{color:var(--text);font-weight:600;}
+.g{color:var(--green);}.r{color:var(--red);}
+
+/* ─── SCREENS SECTION ─────────────────────────────────── */
+.screens-sec{background:var(--panel);padding:96px 5%;}
+.sec-label{font-size:12px;text-transform:uppercase;letter-spacing:2px;color:var(--coral);font-weight:600;margin-bottom:12px;}
+.sec-title{font-family:'Orbitron',monospace;font-size:clamp(24px,3vw,40px);font-weight:700;margin-bottom:16px;line-height:1.2;}
+.sec-sub{font-size:16px;color:var(--muted);max-width:540px;line-height:1.6;margin-bottom:56px;}
+.screen-cats{display:flex;flex-direction:column;gap:44px;max-width:1200px;margin:0 auto;}
+.cat-hdr{font-family:'Orbitron',monospace;font-size:12px;font-weight:700;color:var(--coral);text-transform:uppercase;letter-spacing:2px;margin-bottom:16px;display:flex;align-items:center;gap:12px;}
+.cat-hdr::after{content:"";flex:1;height:1px;background:var(--border);}
+.screen-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(195px,1fr));gap:10px;}
+.s-card{background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;cursor:pointer;transition:all .2s;border-left:3px solid transparent;}
+.s-card:hover{border-color:var(--border);border-left-color:var(--coral);transform:translateY(-2px);background:var(--panel3);}
+.s-card .ico{font-size:20px;margin-bottom:8px;}
+.s-card .nm{font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px;}
+.s-card .ds{font-size:11px;color:var(--muted);line-height:1.4;}
+
+/* ─── HOW IT WORKS ────────────────────────────────────── */
+.how-sec{padding:96px 5%;background:var(--bg);}
+.steps-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;max-width:1000px;margin:0 auto;}
+.step-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:32px;position:relative;overflow:hidden;}
+.step-card::before{content:attr(data-n);position:absolute;top:12px;right:16px;font-family:'Orbitron',monospace;font-size:56px;font-weight:900;color:rgba(255,107,91,.06);line-height:1;}
+.step-ico{width:46px;height:46px;background:rgba(255,107,91,.1);border:1px solid rgba(255,107,91,.2);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:18px;}
+.step-card h3{font-family:'Orbitron',monospace;font-size:15px;font-weight:700;margin-bottom:10px;}
+.step-card p{font-size:13px;color:var(--muted);line-height:1.6;}
+.file-tag{display:inline-block;background:var(--dim);border:1px solid var(--border);border-radius:4px;padding:3px 8px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--cyan);margin-top:8px;}
+
+/* ─── CTA ─────────────────────────────────────────────── */
+.cta-sec{background:linear-gradient(135deg,rgba(255,107,91,.07) 0%,transparent 60%);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:96px 5%;text-align:center;}
+.cta-sec h2{font-family:'Orbitron',monospace;font-size:clamp(24px,3.5vw,44px);font-weight:800;margin-bottom:14px;line-height:1.2;}
+.cta-sec p{font-size:16px;color:var(--muted);margin-bottom:36px;}
+
+/* ─── FOOTER ──────────────────────────────────────────── */
+footer{background:var(--panel);border-top:1px solid var(--border);padding:36px 5%;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;}
+.footer-muted{font-size:12px;color:var(--muted);}
+
+/* ─── LOGIN MODAL ─────────────────────────────────────── */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;display:none;align-items:center;justify-content:center;}
+.modal-bg.show{display:flex;}
+.modal-box{background:var(--panel2);border:1px solid var(--border);border-radius:16px;padding:40px;width:380px;text-align:center;}
+.modal-logo{font-family:'Orbitron',monospace;font-weight:800;font-size:22px;margin-bottom:6px;}
+.modal-logo span{color:var(--coral);}
+.modal-sub{font-size:13px;color:var(--muted);margin-bottom:28px;}
+.modal-input{width:100%;background:var(--panel3);border:1px solid var(--border);color:var(--text);padding:13px 16px;border-radius:8px;font-size:15px;font-family:'Inter',sans-serif;outline:none;margin-bottom:14px;transition:border-color .2s;}
+.modal-input:focus{border-color:var(--coral);}
+.modal-submit{width:100%;background:var(--coral);color:#fff;border:none;padding:13px;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s;}
+.modal-submit:hover{background:var(--coral2);}
+.modal-err{color:var(--red);font-size:13px;margin-top:10px;display:none;}
+.modal-close{position:absolute;top:16px;right:16px;background:none;border:none;color:var(--muted);cursor:pointer;font-size:20px;}
+
+/* ─── DASHBOARD ───────────────────────────────────────── */
+#page-dashboard{padding-top:68px;}
+.dash-header{background:var(--panel);border-bottom:1px solid var(--border);padding:20px 5%;display:flex;align-items:center;justify-content:space-between;}
+.dash-title{font-family:'Orbitron',monospace;font-size:18px;font-weight:700;}
+.dash-meta{font-size:13px;color:var(--muted);}
+.upload-area{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+.up-btn{background:var(--panel2);border:1px solid var(--border);color:var(--text);padding:8px 14px;border-radius:6px;font-size:13px;cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s;display:flex;align-items:center;gap:6px;}
+.up-btn:hover{border-color:var(--coral);color:var(--coral);}
+.up-btn.primary{background:var(--coral);border-color:var(--coral);color:#fff;}
+.up-btn.primary:hover{background:var(--coral2);}
+
+/* ─── SCREEN PAGE ─────────────────────────────────────── */
+.screen-page{display:none;padding:28px 5%;}
+.screen-page.active{display:block;}
+.sp-header{display:flex;align-items:center;gap:16px;margin-bottom:24px;}
+.sp-back{background:none;border:1px solid var(--border);color:var(--muted);padding:8px 14px;border-radius:6px;font-size:13px;cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s;}
+.sp-back:hover{border-color:var(--coral);color:var(--coral);}
+.sp-title{font-family:'Orbitron',monospace;font-size:20px;font-weight:700;}
+
+/* ─── ADVANCES/DECLINES HOME ──────────────────────────── */
+.adv-home{padding:28px 5%;}
+.adv-kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:28px;}
+.adv-kpi{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px 18px;}
+.adv-kpi .lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+.adv-kpi .val{font-family:'JetBrains Mono',monospace;font-size:26px;font-weight:700;margin-top:6px;}
+.adv-pair{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.adv-card{background:var(--panel);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+.adv-card-hdr{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+.adv-card-hdr .ttl{font-size:14px;font-weight:700;}
+.adv-card-hdr .pill{font-family:'JetBrains Mono',monospace;font-size:12px;background:var(--panel2);border:1px solid var(--border);padding:3px 10px;border-radius:20px;color:var(--muted);}
+.adv-table{width:100%;border-collapse:collapse;font-size:13px;}
+.adv-table th{padding:8px 12px;text-align:right;font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);background:var(--panel2);border-bottom:1px solid var(--border);}
+.adv-table th:first-child{text-align:left;}
+.adv-table td{padding:8px 12px;border-bottom:1px solid rgba(30,42,61,.5);text-align:right;}
+.adv-table td:first-child{text-align:left;font-weight:600;}
+.adv-table tr:last-child td{border-bottom:none;}
+.adv-table tr:hover{background:rgba(255,255,255,.02);}
+.adv-scroll{max-height:420px;overflow-y:auto;}
+
+/* ─── CARD (reuse terminal style) ────────────────────── */
+.card-wrap{background:var(--panel);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+.card-head{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+.card-head .ttl{font-size:14px;font-weight:700;}
+.card-head .sub{font-size:11px;color:var(--muted);}
+.card-head .right{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.cpill{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--panel2);border:1px solid var(--border);padding:3px 10px;border-radius:20px;color:var(--muted);}
+.csearch{background:var(--bg);border:1px solid var(--border);color:var(--text);padding:5px 10px;border-radius:5px;font-size:12px;font-family:'JetBrains Mono',monospace;width:120px;}
+.csearch:focus{outline:none;border-color:var(--coral);}
+.ctable{width:100%;border-collapse:collapse;font-size:12.5px;}
+.ctable th{position:sticky;top:0;background:var(--panel2);text-align:right;font-size:10px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);padding:8px 10px;border-bottom:1px solid var(--border);cursor:pointer;white-space:nowrap;}
+.ctable th:first-child{text-align:left;}
+.ctable th:hover{color:var(--text);}
+.ctable td{padding:7px 10px;border-bottom:1px solid rgba(30,42,61,.5);text-align:right;font-family:'JetBrains Mono',monospace;}
+.ctable td:first-child{text-align:left;font-family:'Inter',sans-serif;font-weight:600;}
+.ctable tr:last-child td{border-bottom:none;}
+.ctable tr:hover{background:rgba(255,255,255,.02);}
+.tscroll{max-height:440px;overflow-y:auto;overflow-x:auto;}
+.empty-row td{text-align:center;color:var(--muted);font-style:italic;padding:28px;}
+
+@keyframes candleMove{0%,100%{transform:scaleY(1);}50%{transform:scaleY(var(--scale));}}
+
+/* upload staging */
+.staging{display:none;background:var(--panel);border:1px solid var(--cyan);border-radius:8px;padding:14px 18px;margin:16px 5% 0;align-items:center;gap:12px;}
+.staging.show{display:flex;}
+
+  /* ─── STICKY SCREEN HEADER ────────────────────────────────────────────── */
+  .sticky-screen-hdr{
+    position:sticky;top:68px;z-index:50;
+    background:var(--bg);border-bottom:1px solid var(--border);
+    padding:14px 5%;display:flex;align-items:center;justify-content:space-between;gap:16px;
+    border-left:4px solid var(--coral);
+    transition:border-color .3s;
+  }
+  .ssh-left{display:flex;align-items:center;gap:14px;}
+  .ssh-right{display:flex;align-items:center;gap:10px;}
+  .sp-desc{font-size:12px;color:var(--muted);margin-top:2px;}
+  .screen-count-badge{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;background:var(--panel2);border:1px solid var(--border);padding:5px 12px;border-radius:20px;color:var(--text);white-space:nowrap;}
+
+  /* ─── FILTER BAR REDESIGN ─────────────────────────────────────────────── */
+  .filter-bar{background:var(--panel);border-bottom:1px solid var(--border);padding:10px 5%;display:flex;flex-direction:column;gap:8px;}
+  .fb-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .filter-num{background:var(--panel2);border:1px solid var(--border);color:var(--text);padding:5px 8px;border-radius:6px;font-size:12px;font-family:'JetBrains Mono',monospace;width:72px;outline:none;}
+  .filter-num:focus{border-color:var(--coral);}
+  .sp-card-wrap{margin:0;border-radius:0;border-left:none;border-right:none;border-top:none;}
+
+  /* ─── SCREEN THEME COLORS ─────────────────────────────────────────────── */
+  .theme-blue .sticky-screen-hdr{border-left-color:#2196F3;background:rgba(33,150,243,.03);}
+  .theme-blue .sp-title{color:#2196F3;}
+  .theme-red .sticky-screen-hdr{border-left-color:#F44336;background:rgba(244,67,54,.03);}
+  .theme-red .sp-title{color:#F44336;}
+  .theme-orange .sticky-screen-hdr{border-left-color:#FF9800;background:rgba(255,152,0,.03);}
+  .theme-orange .sp-title{color:#FF9800;}
+  .theme-purple .sticky-screen-hdr{border-left-color:#9C27B0;background:rgba(156,39,176,.03);}
+  .theme-purple .sp-title{color:#ce93d8;}
+  .theme-cyan .sticky-screen-hdr{border-left-color:#00BCD4;background:rgba(0,188,212,.03);}
+  .theme-cyan .sp-title{color:#00BCD4;}
+  .theme-green .sticky-screen-hdr{border-left-color:#00E676;background:rgba(0,230,118,.03);}
+  .theme-green .sp-title{color:#00E676;}
+  .theme-amber .sticky-screen-hdr{border-left-color:#FFD600;background:rgba(255,214,0,.03);}
+  .theme-amber .sp-title{color:#ffd54f;}
+  .theme-teal .sticky-screen-hdr{border-left-color:#26a69a;background:rgba(38,166,154,.03);}
+  .theme-teal .sp-title{color:#26a69a;}
+  .theme-coral .sticky-screen-hdr{border-left-color:#FF6B5B;background:rgba(255,107,91,.03);}
+  .theme-coral .sp-title{color:#FF6B5B;}
+
+  /* ─── SETTINGS REDESIGN ────────────────────────────────────────────────── */
+  .settings-layout{display:grid;grid-template-columns:200px 1fr;gap:0;min-height:calc(100vh - 68px);}
+  .settings-sidebar{background:var(--panel);border-right:1px solid var(--border);padding:20px 0;}
+  .ss-section-lbl{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);padding:14px 20px 6px;font-weight:700;}
+  .ss-item{display:flex;align-items:center;gap:10px;width:100%;padding:11px 20px;background:none;border:none;color:var(--muted);font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;text-align:left;transition:all .15s;border-left:3px solid transparent;}
+  .ss-item:hover{background:rgba(255,255,255,.04);color:var(--text);}
+  .ss-item.active{background:rgba(255,107,91,.08);color:var(--coral);border-left-color:var(--coral);}
+  .ss-item .ss-ico{font-size:16px;width:20px;text-align:center;}
+  .settings-content{padding:28px 36px;overflow-y:auto;}
+  .sg{display:none;}.sg.active{display:block;}
+  .sg-title{font-family:'Orbitron',monospace;font-size:18px;font-weight:700;margin-bottom:6px;}
+  .sg-sub{font-size:13px;color:var(--muted);margin-bottom:24px;padding-bottom:18px;border-bottom:1px solid var(--border);}
+  .sg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;margin-bottom:24px;}
+  .sg-card{background:var(--panel2);border:1px solid var(--border);border-radius:10px;padding:16px;}
+  .sg-card-lbl{font-size:11px;color:var(--muted);margin-bottom:8px;font-weight:500;}
+  .sg-card-input{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:10px 12px;border-radius:7px;font-size:15px;font-family:'JetBrains Mono',monospace;font-weight:600;outline:none;transition:border-color .2s;}
+  .sg-card-input:focus{border-color:var(--coral);}
+  .sg-card-hint{font-size:11px;color:var(--text-faint,#4a4e5a);margin-top:5px;}
+  .sg-btns{display:flex;gap:12px;padding-top:20px;border-top:1px solid var(--border);}
+
+
+  /* Sortable column headers */
+  .ctable th{cursor:pointer;user-select:none;transition:color .15s,background .15s;color:#e2e8f0;font-weight:700;letter-spacing:.3px;}
+  .ctable th:hover{color:var(--text) !important;background:rgba(255,107,91,.08);}
+  .ctable th.th-active{color:var(--coral) !important;}
+  .sort-arrow{font-size:10px;margin-left:3px;opacity:.5;color:var(--muted);transition:opacity .15s;}
+  .ctable th:hover .sort-arrow{opacity:.9;color:var(--text);}
+  .th-active .sort-arrow{opacity:1 !important;color:var(--coral);}
+
+
+  /* File tracker table */
+  .del-row-btn{background:none;border:1px solid rgba(255,71,87,.3);color:var(--red);cursor:pointer;font-size:14px;padding:3px 9px;border-radius:5px;transition:all .15s;opacity:0.7;}
+  .del-row-btn:hover{background:rgba(255,71,87,.12);opacity:1;border-color:var(--red);}
+  #fileTrackerWrap table tr{border-bottom:1px solid rgba(30,42,61,.5);}
+  #fileTrackerWrap table tr:last-child{border-bottom:none;}
+  #fileTrackerWrap table tr:hover td{background:rgba(255,255,255,.025);}
+  #fileTrackerWrap td{padding:9px 14px;}
+
+  /* ─── LIGHT THEME ─────────────────────────────────────────────────────── */
+  body.light{
+    --bg:#f0f4f8;--panel:#ffffff;--panel2:#f8fafc;--panel3:#edf2f7;
+    --border:#e2e8f0;--text:#0f172a;--muted:#64748b;--dim:#e2e8f0;
+    --green:#16a34a;--red:#dc2626;--amber:#d97706;--cyan:#0891b2;
+  }
+  body.light nav{background:rgba(255,255,255,.95);border-bottom-color:#e2e8f0;}
+  body.light .nav-btn{color:#475569;}
+  body.light .nav-btn:hover,.light .nav-item:hover .nav-btn{color:#0f172a;background:rgba(0,0,0,.05);}
+  body.light .dd-mega{background:#fff;border-color:#e2e8f0;box-shadow:0 16px 48px rgba(0,0,0,.12);}
+  body.light .dd-link{color:#475569;}
+  body.light .dd-link:hover{background:rgba(255,107,91,.06);color:#0f172a;}
+  body.light .logo-wordmark{color:#0f172a;}
+  body.light .sticky-screen-hdr{background:#f0f4f8;border-bottom-color:#e2e8f0;}
+  body.light .filter-bar{background:#fff;border-bottom-color:#e2e8f0;}
+  body.light .filter-sel,.light .filter-num{background:#f8fafc;border-color:#e2e8f0;color:#0f172a;}
+  body.light .card-wrap,.light .adv-card{background:#fff;border-color:#e2e8f0;}
+  body.light .ctable th{background:#f8fafc;color:#475569 !important;font-weight:600;}
+  body.light .ctable td{border-bottom-color:#f1f5f9;}
+  body.light .ctable tr:hover{background:rgba(0,0,0,.02);}
+  body.light .adv-card-hdr{background:#f8fafc;border-color:#e2e8f0;}
+  body.light .adv-table th{background:#f8fafc;color:#94a3b8;}
+  body.light .cpill,.light .screen-count-badge{background:#f1f5f9;border-color:#e2e8f0;color:#475569;}
+  body.light #fileTrackerWrap .adv-card{background:#fff;}
+  body.light .adv-kpi{background:#fff;border-color:#e2e8f0;}
+  body.light .modal-box{background:#fff;border-color:#e2e8f0;}
+  body.light .modal-input{background:#f8fafc;border-color:#e2e8f0;color:#0f172a;}
+  body.light .up-btn{background:#f8fafc;border-color:#e2e8f0;color:#0f172a;}
+  body.light .up-btn:hover{border-color:var(--coral);}
+  body.light .settings-sidebar{background:#fff;border-right-color:#e2e8f0;}
+  body.light .ss-item{color:#475569;}
+  body.light .ss-item:hover{background:rgba(0,0,0,.04);color:#0f172a;}
+  body.light .settings-content{background:#f0f4f8;}
+  body.light .sg-card{background:#fff;border-color:#e2e8f0;}
+  body.light .sg-card-input{background:#f8fafc;border-color:#e2e8f0;color:#0f172a;}
+  body.light #fileTrackerWrap{background:#f0f4f8;}
+  body.light #fileTrackerWrap>div{background:#fff;border-color:#e2e8f0;}
+
+  /* ─── HEATMAP VIEW ─────────────────────────────────────────────────────── */
+  .hm-wrap{padding:12px 16px;min-height:300px;}
+  .hm-grid{display:flex;flex-wrap:wrap;gap:3px;align-content:flex-start;}
+  .hm-tile{
+    display:flex;flex-direction:column;justify-content:center;align-items:center;
+    border-radius:5px;cursor:pointer;overflow:hidden;position:relative;
+    min-width:72px;min-height:64px;padding:6px;
+    transition:transform .12s,box-shadow .12s;
+  }
+  .hm-tile:hover{transform:scale(1.06);z-index:5;box-shadow:0 4px 16px rgba(0,0,0,.3);}
+  .hm-sym{font-size:12px;font-weight:800;color:rgba(255,255,255,.97);text-align:center;line-height:1.3;letter-spacing:.2px;}
+  .hm-chg{font-size:15px;font-weight:900;color:#fff;margin-top:3px;}
+  .hm-ltp{font-size:10px;color:rgba(255,255,255,.75);margin-top:2px;}
+  .hm-tooltip{
+    position:fixed;background:var(--panel2);border:1px solid var(--border);
+    border-radius:8px;padding:10px 14px;z-index:999;pointer-events:none;
+    font-size:12px;box-shadow:0 8px 24px rgba(0,0,0,.3);min-width:160px;
+  }
+  .hm-tooltip .sym{font-weight:700;font-size:14px;margin-bottom:4px;}
+  .view-toggle{display:flex;gap:4px;margin-left:auto;}
+  .vt-btn{background:var(--panel2);border:1px solid var(--border);color:var(--muted);padding:5px 12px;border-radius:6px;font-size:12px;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;}
+  .vt-btn.active{background:var(--coral);border-color:var(--coral);color:#fff;}
+  #candleToggle.active{background:var(--coral);border-color:var(--coral);color:#fff;}
+  .vt-btn:hover:not(.active){border-color:var(--coral);color:var(--coral);}
+  .hm-legend{display:flex;align-items:center;gap:6px;padding:8px 16px;font-size:11px;color:var(--muted);border-top:1px solid var(--border);}
+  .hm-legend span{width:28px;height:12px;border-radius:2px;display:inline-block;}
+
+
+  .mini-candle-cell{padding:4px 8px;vertical-align:middle;white-space:nowrap;}
+  .mini-candle-cell svg{display:block;}
+
+
+  /* ─── INDICES VIEW ──────────────────────────────────────────────────────── */
+  .indices-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;padding:20px 5%;}
+  .idx-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;}
+  .idx-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,.3);}
+  .idx-card .idx-name{font-family:'Orbitron',monospace;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:10px;}
+  .idx-card .idx-chg{font-size:32px;font-weight:800;font-family:'JetBrains Mono',monospace;margin-bottom:8px;}
+  .idx-card .idx-chg.g{color:var(--green);}
+  .idx-card .idx-chg.r{color:var(--red);}
+  .idx-card .idx-bar{height:4px;border-radius:2px;background:var(--border);margin-bottom:10px;overflow:hidden;}
+  .idx-card .idx-bar-fill{height:100%;border-radius:2px;transition:width .3s;}
+  .idx-card .idx-adv{font-size:12px;color:var(--muted);display:flex;gap:10px;}
+  .idx-card .idx-adv span{font-weight:600;}
+  .idx-card .idx-adv .up{color:var(--green);}
+  .idx-card .idx-adv .dn{color:var(--red);}
+  .idx-card .idx-glow{position:absolute;bottom:0;right:0;width:80px;height:80px;border-radius:50%;opacity:.06;pointer-events:none;}
+  .idx-back-btn{background:none;border:1px solid var(--border);color:var(--muted);padding:7px 14px;border-radius:6px;font-size:13px;cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s;margin:16px 5%;}
+  .idx-back-btn:hover{border-color:var(--coral);color:var(--coral);}
+  .idx-detail-hdr{padding:14px 5%;display:flex;align-items:center;gap:14px;border-bottom:1px solid var(--border);}
+  .idx-detail-title{font-family:'Orbitron',monospace;font-size:18px;font-weight:700;}
+  .idx-detail-chg{font-size:22px;font-weight:800;font-family:'JetBrains Mono',monospace;}
+
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo" onclick="goPage('landing')">
+    <div style="display:flex;align-items:flex-end;gap:3px;height:28px;">
+      <div style="width:5px;height:12px;background:#475569;border-radius:2px 2px 0 0;"></div>
+      <div style="width:5px;height:18px;background:#475569;border-radius:2px 2px 0 0;"></div>
+      <div style="width:5px;height:14px;background:#475569;border-radius:2px 2px 0 0;"></div>
+      <div style="width:5px;height:22px;background:#475569;border-radius:2px 2px 0 0;"></div>
+      <div style="position:relative;display:flex;align-items:flex-end;">
+        <div style="width:5px;height:28px;background:var(--coral);border-radius:2px 2px 0 0;"></div>
+        <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:18px;height:18px;border:2px solid var(--coral);border-radius:50%;"></div>
+      </div>
+    </div>
+    <span class="logo-wordmark">Koki<span>xio</span></span>
+  </a>
+
+  <div class="nav-center">
+    <!-- Screens Dropdown -->
+    <div class="nav-item">      <button class="nav-btn">Screens <span class="arrow">▾</span></button>
+      <div class="dd-mega three-col">
+        <div>
+          <div class="dd-col-title">Price Action</div>
+          <button class="dd-link" onclick="openScreen('gap')"><span class="ico">⬆️</span><span class="name">Gap Up / Down</span></button>
+          <button class="dd-link" onclick="openScreen('big')"><span class="ico">🚀</span><span class="name">Big Movers</span><span class="tag">≥5%</span></button>
+          <button class="dd-link" onclick="openScreen('mid')"><span class="ico">📊</span><span class="name">Mid-Range Movers</span></button>
+          <button class="dd-link" onclick="openScreen('side')"><span class="ico">➡️</span><span class="name">Sideways Stocks</span></button>
+          <button class="dd-link" onclick="openScreen('candle')"><span class="ico">🕯️</span><span class="name">Candle Close Position</span></button>
+          <button class="dd-link" onclick="openScreen('grev')"><span class="ico">🔄</span><span class="name">Gap Reversal</span></button>
+          <button class="dd-link" onclick="openScreen('52prox')"><span class="ico">📌</span><span class="name">52W Proximity</span></button>
+        </div>
+        <div>
+          <div class="dd-col-title">Volume & Momentum</div>
+          <button class="dd-link" onclick="openScreen('hvol')"><span class="ico">📦</span><span class="name">High Volume Leaders</span></button>
+          <button class="dd-link" onclick="openScreen('tval')"><span class="ico">💰</span><span class="name">Traded Value ₹Cr</span></button>
+          <button class="dd-link" onclick="openScreen('range')"><span class="ico">📏</span><span class="name">Intraday Range %</span></button>
+          <button class="dd-link" onclick="openScreen('consec')"><span class="ico">📈</span><span class="name">Consecutive Days</span></button>
+          <button class="dd-link" onclick="openScreen('wku')"><span class="ico">🟢</span><span class="name">Weekly Uptrend W↑</span></button>
+          <button class="dd-link" onclick="openScreen('wkd')"><span class="ico">🔴</span><span class="name">Weekly Downtrend W↓</span></button>
+          <button class="dd-link" onclick="openScreen('ndh')"><span class="ico">🏔️</span><span class="name">New N-Day High</span></button>
+          <button class="dd-link" onclick="openScreen('ndl')"><span class="ico">🕳️</span><span class="name">New N-Day Low</span></button>
+          <button class="dd-link" onclick="openScreen('multi')"><span class="ico">🎯</span><span class="name">Multi-Screen Hits</span><span class="tag">NEW</span></button>
+        </div>
+        <div>
+          <div class="dd-col-title">Pattern & Institutional</div>
+          <button class="dd-link" onclick="openScreen('nr7')"><span class="ico">🎯</span><span class="name">NR7 Setup</span></button>
+          <button class="dd-link" onclick="openScreen('nr4')"><span class="ico">🔭</span><span class="name">NR4 Setup</span></button>
+          <button class="dd-link" onclick="openScreen('hammer')"><span class="ico">🔨</span><span class="name">Hammer</span></button>
+          <button class="dd-link" onclick="openScreen('star')"><span class="ico">⭐</span><span class="name">Shooting Star</span></button>
+          <div style="height:1px;background:var(--border);margin:8px 0;"></div>
+          <button class="dd-link" onclick="openScreen('delhi')"><span class="ico">🏦</span><span class="name">High Delivery DEL↑</span></button>
+          <button class="dd-link" onclick="openScreen('dello')"><span class="ico">⚡</span><span class="name">Low Delivery SPC</span></button>
+          <button class="dd-link" onclick="openScreen('ddstreak')"><span class="ico">🔥</span><span class="name">Delivery Streak DD</span></button>
+          <button class="dd-link" onclick="openScreen('risingdel')"><span class="ico">📶</span><span class="name">Rising Delivery</span></button>
+          <button class="dd-link" onclick="openScreen('dd3plus')"><span class="ico">🏆</span><span class="name">DD3+ Leaders</span><span class="tag">TOP</span></button>
+        </div>
+      </div>
+    </div>
+    <!-- Indices Dropdown -->
+    <div class="nav-item">
+      <button class="nav-btn" style="color:#10d98e;font-weight:600;">📈 Indices <span class="arrow">▾</span></button>
+      <div class="dd-mega two-col" style="min-width:600px;left:0;transform:none;">
+        <div>
+          <div class="dd-col-title">Broad Market</div>
+          <button class="dd-link" onclick="openScreen('indices')"><span class="ico">📊</span><span class="name">All Sectors Overview</span></button>
+          <div style="height:1px;background:var(--border);margin:8px 0;"></div>
+          <div class="dd-col-title" style="margin-top:4px;">Broad Indices</div>
+          <button class="dd-link" onclick="openScreen('idx:NIFTY 50')"><span class="ico">🔵</span><span class="name">NIFTY 50</span></button>
+          <button class="dd-link" onclick="openScreen('idx:NIFTY 100')"><span class="ico">🟢</span><span class="name">NIFTY 100</span></button>
+          <button class="dd-link" onclick="openScreen('idx:NIFTY 200')"><span class="ico">🟡</span><span class="name">NIFTY 200</span></button>
+          <div style="height:1px;background:var(--border);margin:8px 0;"></div>
+          <div class="dd-col-title" style="margin-top:8px;">Banking & Finance</div>
+          <button class="dd-link" onclick="openScreen('idx:NIFTY BANK')"><span class="ico">🏦</span><span class="name">NIFTY BANK</span></button>
+          <button class="dd-link" onclick="openScreen('idx:NIFTY PSU BANK')"><span class="ico">🏛️</span><span class="name">NIFTY PSU BANK</span></button>
+          <div class="dd-col-title" style="margin-top:8px;">Consumer</div>
+          <button class="dd-link" onclick="openScreen('idx:NIFTY FMCG')"><span class="ico">🛒</span><span class="name">NIFTY FMCG</span></button>
+          <button class="dd-link" onclick="openScreen('idx:NIFTY AUTO')"><span class="ico">🚗</span><span class="name">NIFTY AUTO</span></button>
+          <button class="dd-link" onclick="openScreen('idx:NIFTY MEDIA')"><span class="ico">📺</span><span class="name">NIFTY MEDIA</span></button>
+          <button class="dd-link" onclick="openScreen('idx:NIFTY REALTY')"><span class="ico">🏗️</span><span class="name">NIFTY REALTY</span></button>
+        </div>
+        <div>
+          <div class="dd-col-title">Technology & Industry</div>
+          <button class="dd-link" onclick="openScreen('idx:NIFTY IT')"><span class="ico">💻</span><span class="name">NIFTY IT</span></button>
+          <button class="dd-link" onclick="openScreen('idx:NIFTY INFRA')"><span class="ico">🔧</span><span class="name">NIFTY INFRA</span></button>
+          <button class="dd-link" onclick="openScreen('idx:NIFTY METAL')"><span class="ico">⚙️</span><span class="name">NIFTY METAL</span></button>
+          <button class="dd-link" onclick="openScreen('idx:NIFTY ENERGY')"><span class="ico">⚡</span><span class="name">NIFTY ENERGY</span></button>
+          <div class="dd-col-title" style="margin-top:8px;">Healthcare & Others</div>
+          <button class="dd-link" onclick="openScreen('idx:NIFTY PHARMA')"><span class="ico">💊</span><span class="name">NIFTY PHARMA</span></button>
+          <button class="dd-link" onclick="openScreen('idx:NIFTY PHARMA')"><span class="ico">💊</span><span class="name">NIFTY PHARMA</span></button>
+          <button class="dd-link" onclick="openScreen('idx:NIFTY MIDCAP')"><span class="ico">📈</span><span class="name">NIFTY MIDCAP</span></button>
+          <button class="dd-link" onclick="openScreen('idx:NIFTY MIDCAP 100')"><span class="ico">📊</span><span class="name">NIFTY MIDCAP 100</span></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- About Dropdown -->
+    <div class="nav-item">
+      <button class="nav-btn">About <span class="arrow">▾</span></button>
+      <div class="dd-mega two-col" style="min-width:420px;left:0;transform:none;">
+        <div>
+          <div class="dd-col-title">How it Works</div>
+          <button class="dd-link" onclick="goSection('how')"><span class="ico">⬇️</span><span class="name">Download from NSE</span></button>
+          <button class="dd-link" onclick="goSection('how')"><span class="ico">📤</span><span class="name">Upload to Terminal</span></button>
+          <button class="dd-link" onclick="goSection('how')"><span class="ico">🎯</span><span class="name">Screen & Trade</span></button>
+        </div>
+        <div>
+          <div class="dd-col-title">Signals</div>
+          <button class="dd-link" onclick="goSection('signals')"><span class="ico">🔥</span><span class="name">High Conviction Combos</span></button>
+          <button class="dd-link" onclick="goSection('signals')"><span class="ico">📛</span><span class="name">Badges Explained</span></button>
+          <button class="dd-link" onclick="goSection('signals')"><span class="ico">⚠️</span><span class="name">Signals to Avoid</span></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav-center-extra">
+    <button class="nav-btn" onclick="goPage('settings')">⚙ Settings</button>
+  </div>
+  <div class="nav-right" id="navRight">
+    <button class="login-btn" id="themeBtn" onclick="toggleTheme()" title="Toggle light/dark" style="padding:8px 12px;font-size:16px;">☀️</button>
+    <button class="login-btn" id="loginBtn" onclick="showLogin()">Login</button>
+    <button class="open-btn" id="dashBtn" style="display:none;" onclick="goPage('dashboard')">Dashboard →</button>
+  </div>
+</nav>
+
+<!-- LOGIN MODAL -->
+<div class="modal-bg" id="loginModal">
+  <div class="modal-box" style="position:relative;">
+    <button class="modal-close" onclick="hideLogin()">✕</button>
+    <div class="modal-logo">Koki<span>xio</span></div>
+    <div class="modal-sub">Enter your access PIN to continue</div>
+    <input class="modal-input" type="password" id="pinInput" placeholder="Enter PIN" maxlength="20">
+    <button class="modal-submit" onclick="doLogin()">Access Terminal →</button>
+    <div class="modal-err" id="loginErr">Incorrect PIN. Try again.</div>
+    <div style="margin-top:16px;font-size:11px;color:var(--muted);">Default PIN: <span style="font-family:'JetBrains Mono',monospace;color:var(--cyan);">kokixio</span></div>
+  </div>
+</div>
+
+<!-- ═══════════════ LANDING PAGE ══════════════════════════ -->
+<div id="page-landing" class="page active" style="overflow-y:auto;">
+  <div class="hero">
+    <div class="candles" id="candles"></div>
+    <div class="hero-glow"></div>
+    <div class="hero-content">
+      <div class="eyebrow"><span></span>Nifty 500 Trading Terminal</div>
+      <h1>Screen <em>Smarter.</em><br>Trade Sharper.</h1>
+      <p class="hero-sub">27 precision screens built for NSE intraday traders. NR7 setups, delivery streaks, momentum signals — updated daily from NSE data.</p>
+      <div class="hero-btns">
+        <button class="btn-primary" onclick="showLogin()">Login to Dashboard →</button>
+        <a href="#screens" class="btn-ghost">See All 27 Screens</a>
+      </div>
+    </div>
+    <div class="hero-stats">
+      <div><div class="stat-val g">27</div><div class="stat-lbl">Screens</div></div>
+      <div><div class="stat-val">500</div><div class="stat-lbl">Stocks Tracked</div></div>
+      <div><div class="stat-val g">Daily</div><div class="stat-lbl">Auto-Updates</div></div>
+      <div><div class="stat-val" style="color:var(--cyan);">NSE</div><div class="stat-lbl">Data Source</div></div>
+    </div>
+  </div>
+
+  <div class="ticker"><div class="ticker-inner" id="ticker"></div></div>
+
+  <!-- 27 SCREENS -->
+  <section class="screens-sec" id="screens">
+    <div style="max-width:1200px;margin:0 auto;">
+      <div class="sec-label">Complete Coverage</div>
+      <div class="sec-title">27 Screens. Every Signal.</div>
+      <div class="sec-sub">Everything computed from two NSE CSV files. No external APIs. No subscriptions.</div>
+      <div class="screen-cats">
+        <div>
+          <div class="cat-hdr">Price Action</div>
+          <div class="screen-grid">
+            <div class="s-card" onclick="loginThenScreen('gap')"><div class="ico">⬆️</div><div class="nm">Gap Up / Down</div><div class="ds">Prev close → today open gap</div></div>
+            <div class="s-card" onclick="loginThenScreen('big')"><div class="ico">🚀</div><div class="nm">Big Movers ≥5%</div><div class="ds">Strong directional close-to-close</div></div>
+            <div class="s-card" onclick="loginThenScreen('mid')"><div class="ico">📊</div><div class="nm">Mid-Range 1–4%</div><div class="ds">Solid momentum, not extreme</div></div>
+            <div class="s-card" onclick="loginThenScreen('side')"><div class="ico">➡️</div><div class="nm">Sideways</div><div class="ds">Coiling stocks 0.01–0.30%</div></div>
+            <div class="s-card" onclick="loginThenScreen('candle')"><div class="ico">🕯️</div><div class="nm">Candle Close Position</div><div class="ds">Bull top 80% / Bear bottom 20%</div></div>
+            <div class="s-card" onclick="loginThenScreen('grev')"><div class="ico">🔄</div><div class="nm">Gap Reversal</div><div class="ds">Gapped one way, moved other</div></div>
+          </div>
+        </div>
+        <div>
+          <div class="cat-hdr">Volume & Momentum</div>
+          <div class="screen-grid">
+            <div class="s-card" onclick="loginThenScreen('hvol')"><div class="ico">📦</div><div class="nm">High Volume Leaders</div><div class="ds">Top by share volume, price ≥₹150</div></div>
+            <div class="s-card" onclick="loginThenScreen('tval')"><div class="ico">💰</div><div class="nm">Traded Value ₹Cr</div><div class="ds">Institutional money flow</div></div>
+            <div class="s-card" onclick="loginThenScreen('range')"><div class="ico">📏</div><div class="nm">Intraday Range %</div><div class="ds">9:15 AM → 3:30 PM movement</div></div>
+            <div class="s-card" onclick="loginThenScreen('consec')"><div class="ico">📈</div><div class="nm">Consecutive Days</div><div class="ds">Closing same direction N days</div></div>
+            <div class="s-card" onclick="loginThenScreen('wku')"><div class="ico">🟢</div><div class="nm">Weekly Uptrend W↑</div><div class="ds">Up 3+ of last 5 sessions</div></div>
+            <div class="s-card" onclick="loginThenScreen('wkd')"><div class="ico">🔴</div><div class="nm">Weekly Downtrend W↓</div><div class="ds">Down 3+ of last 5 sessions</div></div>
+          </div>
+        </div>
+        <div>
+          <div class="cat-hdr">Pattern & Setup</div>
+          <div class="screen-grid">
+            <div class="s-card" onclick="loginThenScreen('nr7')"><div class="ico">🎯</div><div class="nm">NR7 Setup</div><div class="ds">Narrowest range in 7 days — IB breakout</div></div>
+            <div class="s-card" onclick="loginThenScreen('nr4')"><div class="ico">🔭</div><div class="nm">NR4 Setup</div><div class="ds">Narrowest range in 4 days</div></div>
+            <div class="s-card" onclick="loginThenScreen('hammer')"><div class="ico">🔨</div><div class="nm">Hammer</div><div class="ds">Long lower shadow — bullish reversal</div></div>
+            <div class="s-card" onclick="loginThenScreen('star')"><div class="ico">⭐</div><div class="nm">Shooting Star</div><div class="ds">Long upper shadow — bearish reversal</div></div>
+            <div class="s-card" onclick="loginThenScreen('ndh')"><div class="ico">🏔️</div><div class="nm">New N-Day High</div><div class="ds">Highest close in N days</div></div>
+            <div class="s-card" onclick="loginThenScreen('ndl')"><div class="ico">🕳️</div><div class="nm">New N-Day Low</div><div class="ds">Lowest close in N days</div></div>
+            <div class="s-card" onclick="loginThenScreen('52prox')"><div class="ico">📌</div><div class="nm">52W Proximity</div><div class="ds">1–20% from 52-week extreme</div></div>
+          </div>
+        </div>
+        <div>
+          <div class="cat-hdr">Institutional Activity (Delivery %)</div>
+          <div class="screen-grid">
+            <div class="s-card" onclick="loginThenScreen('delhi')"><div class="ico">🏦</div><div class="nm">High Delivery DEL↑</div><div class="ds">Del% ≥60% — institutional conviction</div></div>
+            <div class="s-card" onclick="loginThenScreen('dello')"><div class="ico">⚡</div><div class="nm">Low Delivery SPC</div><div class="ds">Del% &lt;30% — pure speculation</div></div>
+            <div class="s-card" onclick="loginThenScreen('ddstreak')"><div class="ico">🔥</div><div class="nm">Delivery Streak DD</div><div class="ds">High delivery 2+ consecutive days</div></div>
+            <div class="s-card" onclick="loginThenScreen('risingdel')"><div class="ico">📶</div><div class="nm">Rising Delivery</div><div class="ds">Delivery % increasing every day</div></div>
+            <div class="s-card" onclick="loginThenScreen('dd3plus')"><div class="ico">🏆</div><div class="nm">DD3+ Leaders</div><div class="ds">Accumulation 3+ consecutive days</div></div>
+            <div class="s-card" onclick="loginThenScreen('multi')"><div class="ico">🎯</div><div class="nm">Multi-Screen Hits</div><div class="ds">Same stock in multiple screens today</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="how-sec" id="how">
+    <div style="max-width:900px;margin:0 auto;text-align:center;">
+      <div class="sec-label" style="justify-content:center;display:flex;">Setup in 2 Minutes</div>
+      <div class="sec-title">How It Works</div>
+      <div class="sec-sub" style="margin:0 auto 56px;">Two files from NSE each evening. Everything updates instantly.</div>
+    </div>
+    <div class="steps-grid" style="max-width:900px;margin:0 auto;">
+      <div class="step-card" data-n="01">
+        <div class="step-ico">⬇️</div>
+        <h3>Download from NSE</h3>
+        <p>After 3:30 PM, download two daily CSV files from NSE website.</p>
+        <div class="file-tag">MW-NIFTY-500-DD-Mon.csv</div><br>
+        <div class="file-tag" style="margin-top:6px;">sec_bhavdata_full_DDMMYYYY.csv</div>
+      </div>
+      <div class="step-card" data-n="02">
+        <div class="step-ico">📤</div>
+        <h3>Upload to Terminal</h3>
+        <p>Click Upload CSV + 📦 Del % button inside the terminal. Dashboard updates in seconds.</p>
+      </div>
+      <div class="step-card" data-n="03">
+        <div class="step-ico">🎯</div>
+        <h3>Screen & Trade</h3>
+        <p>All 27 screens refresh with today's signals. History builds day by day automatically.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta-sec" id="signals">
+    <div style="max-width:560px;margin:0 auto;">
+      <div class="sec-label" style="justify-content:center;display:flex;">Ready to Screen?</div>
+      <h2>Your edge starts<br><em style="color:var(--coral);">after market close.</em></h2>
+      <p>Upload today's NSE files. See tomorrow's setups. Trade with conviction.</p>
+      <button class="btn-primary" style="font-size:16px;padding:16px 40px;" onclick="showLogin()">Login to Dashboard →</button>
+    </div>
+  </section>
+
+  <footer>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div style="display:flex;align-items:flex-end;gap:2px;height:20px;">
+        <div style="width:4px;height:8px;background:#475569;border-radius:1px 1px 0 0;"></div>
+        <div style="width:4px;height:13px;background:#475569;border-radius:1px 1px 0 0;"></div>
+        <div style="width:4px;height:10px;background:#475569;border-radius:1px 1px 0 0;"></div>
+        <div style="width:4px;height:16px;background:#475569;border-radius:1px 1px 0 0;"></div>
+        <div style="position:relative;display:flex;align-items:flex-end;">
+          <div style="width:4px;height:20px;background:var(--coral);border-radius:1px 1px 0 0;"></div>
+          <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:12px;height:12px;border:1.5px solid var(--coral);border-radius:50%;"></div>
+        </div>
+      </div>
+      <span style="font-family:'Orbitron',monospace;font-weight:700;font-size:15px;">Koki<span style="color:var(--coral);">xio</span></span>
+    </div>
+    <div class="footer-muted">Screen smarter, trade sharper · NSE Nifty 500</div>
+    <div class="footer-muted">Personal trading terminal · © 2026</div>
+  </footer>
+</div>
+
+<!-- ═══════════════ DASHBOARD ════════════════════════════ -->
+<div id="page-dashboard" class="page">
+
+  <!-- Index Performance Ticker -->
+  <div id="dashIdxTicker" style="background:var(--panel);border-bottom:1px solid var(--border);padding:0;overflow:hidden;height:36px;display:none;align-items:center;">
+    <div style="background:var(--coral);color:#fff;font-size:11px;font-weight:700;padding:0 14px;height:100%;display:flex;align-items:center;flex-shrink:0;letter-spacing:.5px;font-family:'Orbitron',monospace;white-space:nowrap;">INDICES</div>
+    <div style="overflow:hidden;flex:1;position:relative;">
+      <div id="idxTickerInner" style="display:flex;gap:32px;animation:scroll 40s linear infinite;white-space:nowrap;width:max-content;padding:0 20px;"></div>
+    </div>
+  </div>
+
+  <!-- Upload staging -->
+  <input type="file" id="mainFile" accept=".csv" style="display:none;">
+  <input type="file" id="delivFile" accept=".csv" style="display:none;">
+  <div class="staging" id="staging">
+    <span id="stagingTxt" style="font-size:13px;"></span>
+    <input type="date" id="stagingDate" style="background:var(--panel2);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:6px;font-size:13px;font-family:'JetBrains Mono',monospace;">
+    <button class="up-btn primary" onclick="confirmUpload()">Save ✓</button>
+    <button class="up-btn" onclick="cancelUpload()">Cancel</button>
+  </div>
+
+  <!-- Dashboard header -->
+  <div class="dash-header">
+    <div>
+      <div class="dash-title" id="dashTitle">Dashboard</div>
+      <div class="dash-meta" id="dashMeta">Loading...</div>
+    </div>
+    <div class="upload-area">
+      <select id="daySelect" style="background:var(--panel2);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:6px;font-size:13px;font-family:'JetBrains Mono',monospace;display:none;"></select>
+      <button class="up-btn" onclick="toggleTracker()" id="trackerBtn">📅 File Tracker</button>
+      <button class="up-btn" onclick="document.getElementById('delivFile').click()">📦 Del %</button>
+      <button class="up-btn primary" onclick="document.getElementById('mainFile').click()">↑ Upload CSV</button>
+    </div>
+  </div>
+
+  <!-- FILE TRACKER PANEL -->
+  <div id="fileTrackerWrap" style="display:none;padding:0 5% 20px;margin-top:-4px;">
+    <div style="background:var(--panel);border:1px solid var(--border);border-radius:10px;overflow:hidden;">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border);background:var(--panel2);">
+        <div style="font-family:'Orbitron',monospace;font-size:14px;font-weight:700;">📅 File Upload Tracker</div>
+        <div style="font-size:12px;color:var(--muted);">✅ uploaded &nbsp;|&nbsp; ❌ missing &nbsp;|&nbsp; 🗑 delete day</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;">
+
+        <!-- MW CSV Column -->
+        <div style="border-right:1px solid var(--border);">
+          <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+            <div style="font-size:13px;font-weight:700;color:var(--cyan);">📊 MW CSV — Price Data</div>
+            <span id="mwCount" style="font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--dim);border:1px solid var(--border);padding:2px 10px;border-radius:12px;color:var(--muted);">—</span>
+          </div>
+          <div style="max-height:280px;overflow-y:auto;">
+            <table style="width:100%;border-collapse:collapse;font-size:13px;">
+              <thead><tr style="background:var(--panel2);">
+                <th style="text-align:left;padding:8px 14px;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border);">Date</th>
+                <th style="text-align:center;padding:8px 10px;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border);">Status</th>
+                <th style="text-align:right;padding:8px 10px;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border);">Stocks</th>
+                <th style="text-align:center;padding:8px 10px;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border);">Delete</th>
+              </tr></thead>
+              <tbody id="mwTrackerBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Bhavdata Column -->
+        <div>
+          <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+            <div style="font-size:13px;font-weight:700;color:var(--amber);">📦 Bhavdata — Delivery %</div>
+            <span id="delCount" style="font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--dim);border:1px solid var(--border);padding:2px 10px;border-radius:12px;color:var(--muted);">—</span>
+          </div>
+          <div style="max-height:280px;overflow-y:auto;">
+            <table style="width:100%;border-collapse:collapse;font-size:13px;">
+              <thead><tr style="background:var(--panel2);">
+                <th style="text-align:left;padding:8px 14px;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border);">Date</th>
+                <th style="text-align:center;padding:8px 10px;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border);">Status</th>
+                <th style="text-align:right;padding:8px 10px;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border);">Stocks</th>
+              </tr></thead>
+              <tbody id="delTrackerBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN: Home (Advances & Declines) -->
+  <div class="screen-page active" id="sp-home">
+    <div class="adv-home">
+      <div class="adv-kpis" id="homeKpis"></div>
+      <div class="adv-pair">
+        <div class="adv-card">
+          <div class="adv-card-hdr">
+            <div>
+              <div class="ttl" style="color:var(--green);">▲ Advances</div>
+              <div style="font-size:11px;color:var(--muted);">Stocks closed positive today</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <input class="csearch" id="advSearch" placeholder="Search..." oninput="filterAdvDec()">
+              <span class="cpill" id="advPill">—</span>
+            </div>
+          </div>
+          <div class="adv-scroll">
+            <table class="adv-table" id="advTable"><thead><tr id="advHead"></tr></thead><tbody id="advBody"></tbody></table>
+          </div>
+        </div>
+        <div class="adv-card">
+          <div class="adv-card-hdr">
+            <div>
+              <div class="ttl" style="color:var(--red);">▼ Declines</div>
+              <div style="font-size:11px;color:var(--muted);">Stocks closed negative today</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <input class="csearch" id="decSearch" placeholder="Search..." oninput="filterAdvDec()">
+              <span class="cpill" id="decPill">—</span>
+            </div>
+          </div>
+          <div class="adv-scroll">
+            <table class="adv-table" id="decTable"><thead><tr id="decHead"></tr></thead><tbody id="decBody"></tbody></table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DYNAMIC SCREEN PAGE -->
+  <div class="screen-page" id="sp-dynamic">
+
+    <!-- Sticky screen header with theme color -->
+    <div class="sticky-screen-hdr" id="stickyHdr">
+      <div class="ssh-left">
+        <button class="sp-back" onclick="openScreen('home')">← Home</button>
+        <div>
+          <div class="sp-title" id="spTitle">—</div>
+          <div class="sp-desc" id="spCardDesc">—</div>
+        </div>
+      </div>
+      <div class="ssh-right">
+        <span class="screen-count-badge" id="spCount">—</span>
+        <div class="view-toggle">
+        <button class="vt-btn active" id="vt-table" onclick="setView('table')" title="Table view">☰ Table</button>
+        <button class="vt-btn" id="vt-heatmap" onclick="setView('heatmap')" title="Heatmap view">🔥 Heatmap</button>
+      </div>
+      <input class="csearch" id="spSearch" placeholder="Search symbol..." oninput="filterSP()" onkeyup="filterSP()" style="width:140px;">
+      </div>
+    </div>
+
+    <!-- Filter bar -->
+    <div class="filter-bar" id="spFilterBar">
+      <div class="fb-row">
+        <span class="flbl">Sort by</span>
+        <select class="filter-sel" id="fSortBy" onchange="applyScreenFilters()">
+          <option value="">Default</option>
+          <option value="c_desc">% Chg ↓</option>
+          <option value="c_asc">% Chg ↑</option>
+          <option value="rs_desc">RS ↓ Best</option>
+          <option value="rs_asc">RS ↑ Worst</option>
+          <option value="v_desc">Volume ↓</option>
+          <option value="d30_desc">30D % ↓</option>
+          <option value="d30_asc">30D % ↑</option>
+          <option value="del_desc">Del % ↓</option>
+        </select>
+        <div class="filter-sep"></div>
+        <span class="flbl">Min % Chg</span>
+        <input class="filter-num" id="fMinChg" type="number" step="0.5" placeholder="e.g. 2" oninput="applyScreenFilters()">
+        <span class="flbl">Min RS</span>
+        <input class="filter-num" id="fMinRS" type="number" step="0.5" placeholder="e.g. 0" oninput="applyScreenFilters()">
+        <span class="flbl">Min Del%</span>
+        <input class="filter-num" id="fMinDel" type="number" step="5" placeholder="e.g. 50" oninput="applyScreenFilters()">
+      </div>
+      <div class="fb-row">
+        <span class="flbl">Quick</span>
+        <button class="filter-chip" id="fRsPos" onclick="toggleChip(this,'rs')">RS &gt; 0</button>
+        <button class="filter-chip" id="fDelHi" onclick="toggleChip(this,'del')">DEL↑ Only</button>
+        <button class="filter-chip" id="fNR7" onclick="toggleChip(this,'nr7')">NR7</button>
+        <button class="filter-chip" id="fNR4" onclick="toggleChip(this,'nr4')">NR4</button>
+        <button class="filter-chip" id="fWkUp" onclick="toggleChip(this,'wku')">W↑ Trend</button>
+        <button class="filter-chip" id="fWkDn" onclick="toggleChip(this,'wkd')">W↓ Trend</button>
+        <button class="filter-chip" id="fHam" onclick="toggleChip(this,'ham')">🔨 Hammer</button>
+        <button class="filter-chip" id="fStar" onclick="toggleChip(this,'star')">⭐ Star</button>
+        <div class="filter-sep"></div>
+        <button class="clr-btn" onclick="clearScreenFilters()">✕ Clear All</button>
+      </div>
+    </div>
+
+    <!-- Indices view -->
+    <div id="view-indices" style="display:none;">
+      <button class="idx-back-btn" onclick="openScreen('home')">← Back to Home</button>
+      <!-- Long/Short filter for indices overview -->
+      <div id="idxFilterBar" style="padding:12px 5%;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);">
+        <span style="font-size:12px;color:var(--muted);font-weight:600;">Sort:</span>
+        <button class="vt-btn active" id="idxF-all" onclick="setIdxFilter('all',this)">⬛ All Sectors</button>
+        <button class="vt-btn" id="idxF-long" onclick="setIdxFilter('long',this)" style="color:#22c55e;border-color:rgba(34,197,94,.4);">▲ Long Build Up</button>
+        <button class="vt-btn" id="idxF-short" onclick="setIdxFilter('short',this)" style="color:#ef4444;border-color:rgba(239,68,68,.4);">▼ Short Build Up</button>
+        <span style="margin-left:auto;font-size:11px;color:var(--muted);" id="idxFilterLbl">All sectors by avg % change</span>
+      </div>
+      <div class="indices-grid" id="idxGrid"></div>
+      <!-- Sector detail (shown when index card clicked) -->
+      <div id="idxDetail" style="display:none;">
+        <div class="adv-kpis" id="idxKpi" style="padding:16px 5%;display:grid;grid-template-columns:repeat(4,1fr);gap:12px;border-bottom:1px solid var(--border);"></div>
+        <div class="idx-detail-hdr">
+          <button class="idx-back-btn" style="margin:0;" onclick="closeIdxDetail()">← All Indices</button>
+          <div class="idx-detail-title" id="idxDetailName">—</div>
+          <div class="idx-detail-chg" id="idxDetailChg"></div>
+        </div>
+        <div class="tscroll"><table class="ctable" id="idxDetailTable">
+          <thead><tr id="idxDetailHead"></tr></thead>
+          <tbody id="idxDetailBody"></tbody>
+        </table></div>
+      </div>
+    </div>
+    <!-- Table card -->
+    <div class="card-wrap sp-card-wrap">
+      <!-- Table view -->
+      <div id="view-table"><div class="tscroll"><table class="ctable" id="spTable">
+        <thead><tr id="spHead"></tr></thead>
+        <tbody id="spBody"></tbody>
+      </table></div></div>
+      <!-- Heatmap view -->
+      <div id="view-heatmap" style="display:none;">
+        <div style="display:flex;align-items:center;gap:8px;padding:10px 16px;border-bottom:1px solid var(--border);">
+          <span style="font-size:12px;color:var(--muted);font-weight:600;">Filter:</span>
+          <button class="vt-btn active" id="hm-all" onclick="setHmFilter('all',this)">⬛ All Stocks</button>
+          <button class="vt-btn" id="hm-long" onclick="setHmFilter('long',this)" style="color:#16a34a;border-color:rgba(22,163,74,.4);">▲ Long Build Up</button>
+          <button class="vt-btn" id="hm-short" onclick="setHmFilter('short',this)" style="color:#dc2626;border-color:rgba(220,38,38,.4);">▼ Short Build Up</button>
+          <span style="margin-left:auto;font-size:11px;color:var(--muted);" id="hmFilterLabel">Sorted by traded value (size = ₹Cr)</span>
+        </div>
+        <div class="hm-wrap">
+          <div class="hm-grid" id="hmGrid"></div>
+        </div>
+        <div class="hm-legend">
+          <span style="background:#b71c1c;"></span>≤-5%
+          <span style="background:#e53935;"></span>-2 to -5%
+          <span style="background:#ef9a9a;"></span>0 to -2%
+          <span style="background:#a5d6a7;"></span>0 to +2%
+          <span style="background:#43a047;"></span>+2 to +5%
+          <span style="background:#1b5e20;"></span>≥+5%
+        </div>
+      </div>
+      <!-- Heatmap tooltip -->
+      <div class="hm-tooltip" id="hmTooltip" style="display:none;"></div>
+    </div>
+
+  </div></div><!-- ═══════════════ SETTINGS PAGE ════════════════════════════ -->
+<div id="page-settings" class="page" style="overflow-y:auto;">
+  <div style="padding-top:68px;">
+    <div class="settings-layout">
+
+      <!-- Sidebar -->
+      <div class="settings-sidebar">
+        <div class="ss-section-lbl">Settings</div>
+        <button class="ss-item active" onclick="showSG('price',this)"><span class="ss-ico">📊</span>Price Action</button>
+        <button class="ss-item" onclick="showSG('volume',this)"><span class="ss-ico">📦</span>Volume</button>
+        <button class="ss-item" onclick="showSG('pattern',this)"><span class="ss-ico">🎯</span>Patterns</button>
+        <button class="ss-item" onclick="showSG('delivery',this)"><span class="ss-ico">🏦</span>Delivery %</button>
+        <button class="ss-item" onclick="showSG('access',this)"><span class="ss-ico">🔐</span>PIN / Access</button>
+        <div class="ss-section-lbl" style="margin-top:16px;">Navigation</div>
+        <button class="ss-item" onclick="goPage(isLoggedIn?'dashboard':'landing')"><span class="ss-ico">←</span>Back</button>
+      </div>
+
+      <!-- Content -->
+      <div class="settings-content">
+
+        <!-- Price Action -->
+        <div class="sg active" id="sg-price">
+          <div class="sg-title">📊 Price Action Thresholds</div>
+          <div class="sg-sub">Controls which stocks appear in Gap, Big Move, Mid-Range and Sideways screens.</div>
+          <div class="sg-grid">
+            <div class="sg-card"><div class="sg-card-lbl">Gap % Trigger</div><input class="sg-card-input" id="st-gap" type="number" step="0.1"><div class="sg-card-hint">Stock opens ≥ this % above/below prev close</div></div>
+            <div class="sg-card"><div class="sg-card-lbl">Big Move % (≥)</div><input class="sg-card-input" id="st-big" type="number" step="0.5"><div class="sg-card-hint">Minimum % change to qualify as big mover</div></div>
+            <div class="sg-card"><div class="sg-card-lbl">Mid Move Min %</div><input class="sg-card-input" id="st-midMin" type="number" step="0.5"><div class="sg-card-hint">Lower bound for mid-range movers</div></div>
+            <div class="sg-card"><div class="sg-card-lbl">Mid Move Max %</div><input class="sg-card-input" id="st-midMax" type="number" step="0.5"><div class="sg-card-hint">Upper bound for mid-range movers</div></div>
+            <div class="sg-card"><div class="sg-card-lbl">Sideways Min %</div><input class="sg-card-input" id="st-sideMin" type="number" step="0.01"><div class="sg-card-hint">Minimum move for sideways stocks</div></div>
+            <div class="sg-card"><div class="sg-card-lbl">Sideways Max %</div><input class="sg-card-input" id="st-sideMax" type="number" step="0.01"><div class="sg-card-hint">Maximum move for sideways stocks</div></div>
+            <div class="sg-card"><div class="sg-card-lbl">52W Proximity Min %</div><input class="sg-card-input" id="st-52min" type="number" step="1"><div class="sg-card-hint">Min % from 52W high/low to qualify</div></div>
+            <div class="sg-card"><div class="sg-card-lbl">52W Proximity Max %</div><input class="sg-card-input" id="st-52max" type="number" step="5"><div class="sg-card-hint">Max % from 52W high/low to qualify</div></div>
+          </div>
+          <div class="sg-btns"><button class="save-btn" onclick="saveSettings()">Save Changes</button><button class="reset-btn" onclick="resetSettings()">Reset Defaults</button></div>
+        </div>
+
+        <!-- Volume -->
+        <div class="sg" id="sg-volume">
+          <div class="sg-title">📦 Volume & Liquidity</div>
+          <div class="sg-sub">Controls the High Volume Leaders screen filters.</div>
+          <div class="sg-grid">
+            <div class="sg-card"><div class="sg-card-lbl">Min Price ₹ (High Volume)</div><input class="sg-card-input" id="st-price" type="number" step="10"><div class="sg-card-hint">Only show stocks above this price</div></div>
+            <div class="sg-card"><div class="sg-card-lbl">Min Volume (shares)</div><input class="sg-card-input" id="st-vol" type="number" step="100000"><div class="sg-card-hint">e.g. 1000000 = 10 Lakh shares</div></div>
+          </div>
+          <div class="sg-btns"><button class="save-btn" onclick="saveSettings()">Save Changes</button><button class="reset-btn" onclick="resetSettings()">Reset Defaults</button></div>
+        </div>
+
+        <!-- Patterns -->
+        <div class="sg" id="sg-pattern">
+          <div class="sg-title">🎯 Pattern & Setup</div>
+          <div class="sg-sub">Controls Hammer, Shooting Star, and N-Day High/Low screens.</div>
+          <div class="sg-grid">
+            <div class="sg-card"><div class="sg-card-lbl">Min Shadow % (Hammer/Star)</div><input class="sg-card-input" id="st-shadow" type="number" step="0.5"><div class="sg-card-hint">Shadow must be at least this % of prev close</div></div>
+            <div class="sg-card"><div class="sg-card-lbl">Max Body % (Hammer/Star)</div><input class="sg-card-input" id="st-body" type="number" step="0.5"><div class="sg-card-hint">Body must be ≤ this % of prev close</div></div>
+            <div class="sg-card"><div class="sg-card-lbl">N-Day High/Low — Days (N)</div><input class="sg-card-input" id="st-nday" type="number" step="5" min="3"><div class="sg-card-hint">Compare today's close vs last N days</div></div>
+          </div>
+          <div class="sg-btns"><button class="save-btn" onclick="saveSettings()">Save Changes</button><button class="reset-btn" onclick="resetSettings()">Reset Defaults</button></div>
+        </div>
+
+        <!-- Delivery -->
+        <div class="sg" id="sg-delivery">
+          <div class="sg-title">🏦 Delivery % Thresholds</div>
+          <div class="sg-sub">Controls which stocks get DEL↑, SPC, and DD badges. Requires daily bhavdata upload.</div>
+          <div class="sg-grid">
+            <div class="sg-card" style="border-color:rgba(0,230,118,.3);"><div class="sg-card-lbl" style="color:#00e676;">High Delivery — DEL↑ Badge (%)</div><input class="sg-card-input" id="st-delHigh" type="number" step="5"><div class="sg-card-hint">Stocks with Del% ≥ this get DEL↑ badge</div></div>
+            <div class="sg-card" style="border-color:rgba(255,112,67,.3);"><div class="sg-card-lbl" style="color:#ff7043;">Low Delivery — SPC Badge (%)</div><input class="sg-card-input" id="st-delLow" type="number" step="5"><div class="sg-card-hint">Stocks with Del% &lt; this get SPC badge</div></div>
+          </div>
+          <div class="sg-btns"><button class="save-btn" onclick="saveSettings()">Save Changes</button><button class="reset-btn" onclick="resetSettings()">Reset Defaults</button></div>
+        </div>
+
+        <!-- Access -->
+        <div class="sg" id="sg-access">
+          <div class="sg-title">🔐 PIN / Access</div>
+          <div class="sg-sub">Change your login PIN. Leave blank to keep the current PIN.</div>
+          <div class="sg-grid" style="max-width:500px;">
+            <div class="sg-card"><div class="sg-card-lbl">New PIN</div><input class="sg-card-input" id="st-pin" type="password" placeholder="Enter new PIN"><div class="sg-card-hint">Leave blank to keep current PIN</div></div>
+            <div class="sg-card"><div class="sg-card-lbl">Confirm New PIN</div><input class="sg-card-input" id="st-pin2" type="password" placeholder="Confirm new PIN"></div>
+          </div>
+          <div id="pinMsg" style="font-size:13px;margin-bottom:16px;color:var(--muted);"></div>
+          <div class="sg-btns"><button class="save-btn" onclick="saveSettings()">Save PIN</button></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+
+// ── UNIVERSAL STORAGE ADAPTER ─────────────────────────────────────────────
+// Works on Claude artifacts (window.storage) AND GitHub Pages (localStorage)
+var _store={
+  async get(key){
+    if(typeof window!=='undefined'&&window.storage&&typeof window.storage.get==='function'){
+      try{var r=await window.storage.get(key,false);return r;}catch(e){}
+    }
+    try{var v=localStorage.getItem(key);return v?{value:v}:null;}catch(e){return null;}
+  },
+  async set(key,val){
+    if(typeof window!=='undefined'&&window.storage&&typeof window.storage.set==='function'){
+      try{await window.storage.set(key,val,false);return;}catch(e){}
+    }
+    try{localStorage.setItem(key,val);}catch(e){}
+  },
+  async delete(key){
+    if(typeof window!=='undefined'&&window.storage&&typeof window.storage.delete==='function'){
+      try{await window.storage.delete(key,false);return;}catch(e){}
+    }
+    try{localStorage.removeItem(key);}catch(e){}
+  }
+};
+
+// ── Constants ──────────────────────────────────────────────
+const PIN='kokixio';
+const DAYS_KEY='kx_days';const DAY_PFX='kx_day:';const DELIV_PFX='kx_del:';
+let isLoggedIn=false;
+let daysIndex=[];let dataByDate={};let delivByDate={};let selectedDate=null;
+let allRecords=[];let currentScreen='home';
+
+// ── Page routing ────────────────────────────────────────────
+function goPage(p){
+  document.querySelectorAll('.page').forEach(el=>el.classList.remove('active'));
+  const t=document.getElementById('page-'+p);
+  t.classList.add('active');
+  t.scrollTop=0;
+}
+function goSection(id){
+  goPage('landing');
+  setTimeout(()=>document.getElementById(id)?.scrollIntoView({behavior:'smooth'}),100);
+}
+
+// ── Login ───────────────────────────────────────────────────
+function showLogin(){document.getElementById('loginModal').classList.add('show');document.getElementById('pinInput').value='';document.getElementById('loginErr').style.display='none';setTimeout(()=>document.getElementById('pinInput').focus(),100);}
+function hideLogin(){document.getElementById('loginModal').classList.remove('show');}
+function doLogin(){
+  const pin=document.getElementById('pinInput').value;
+  if(pin===(S&&S.pin?S.pin:DEFAULT_S.pin)){hideLogin();isLoggedIn=true;document.getElementById('loginBtn').style.display='none';document.getElementById('dashBtn').style.display='block';goPage('dashboard');initDashboard();}
+  else{document.getElementById('loginErr').style.display='block';}
+}
+document.getElementById('pinInput').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+document.getElementById('loginModal').addEventListener('click',e=>{if(e.target===document.getElementById('loginModal'))hideLogin();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')hideLogin();});
+
+// ── Screen navigation ───────────────────────────────────────
+function openScreen(id){
+  if(!isLoggedIn){showLogin();pendingScreen=id;return;}
+  goPage('dashboard');
+  currentScreen=id;
+  document.querySelectorAll('.screen-page').forEach(function(el){el.classList.remove('active');});
+  if(id==='home'){
+    document.getElementById('sp-home').classList.add('active');
+    document.getElementById('dashTitle').textContent='Dashboard';
+    document.getElementById('page-dashboard').scrollTop=0;
+    var idt=document.getElementById('dashIdxTicker');if(idt)idt.style.display='flex';
+  }else if(id==='indices'||id.startsWith('idx:')){
+    var idtI=document.getElementById('dashIdxTicker');if(idtI)idtI.style.display='none';
+    document.getElementById('sp-dynamic').classList.add('active');
+    document.getElementById('view-table').style.display='none';
+    document.getElementById('view-heatmap').style.display='none';
+    document.getElementById('view-indices').style.display='block';
+    var idxEl=document.getElementById('spFilterBar');if(idxEl)idxEl.style.display='none';
+    var hdrEl=document.getElementById('stickyHdr');if(hdrEl)hdrEl.style.display='none';
+    if(id==='indices') renderIndices();
+    else openIndexDetail(id.replace('idx:',''));
+    document.getElementById('page-dashboard').scrollTop=0;
+  }else{
+    var idtS=document.getElementById('dashIdxTicker');if(idtS)idtS.style.display='none';
+    // Restore normal table view (may have been hidden by indices view)
+    var vt=document.getElementById('view-table');if(vt)vt.style.display='block';
+    var vh=document.getElementById('view-heatmap');if(vh)vh.style.display='none';
+    document.getElementById('view-indices').style.display='none';
+    var fb=document.getElementById('spFilterBar');if(fb)fb.style.display='flex';
+    var sh=document.getElementById('stickyHdr');if(sh)sh.style.display='flex';
+    document.getElementById('sp-dynamic').classList.add('active');
+    renderScreen(id);
+    document.getElementById('page-dashboard').scrollTop=0;
+  }
+}
+function loginThenScreen(id){if(!isLoggedIn){showLogin();pendingScreen=id;}else{openScreen(id);}}
+let pendingScreen=null;
+
+// ── Storage helpers ─────────────────────────────────────────
+async function loadDaysIndex(){try{const r=await _store.get(DAYS_KEY);if(r&&r.value)daysIndex=JSON.parse(r.value);}catch{}daysIndex=daysIndex||[];}
+async function saveDaysIndex(){try{await _store.set(DAYS_KEY,JSON.stringify(daysIndex));}catch{}}
+async function loadDay(d){if(dataByDate[d])return;try{const r=await _store.get(DAY_PFX+d);if(r&&r.value)dataByDate[d]=JSON.parse(r.value);}catch{}}
+async function saveDay(d,recs){try{await _store.set(DAY_PFX+d,JSON.stringify(recs));dataByDate[d]=recs;}catch(e){throw e;}}
+async function loadDeliv(d){if(delivByDate[d])return;try{const r=await _store.get(DELIV_PFX+d);if(r&&r.value)delivByDate[d]=JSON.parse(r.value);}catch{}}
+async function saveDeliv(d,map){try{await _store.set(DELIV_PFX+d,JSON.stringify(map));delivByDate[d]=map;}catch{}}
+
+// ── Number helpers ──────────────────────────────────────────
+function n(v){try{return parseFloat(String(v).replace(/,/g,'').trim());}catch{return NaN;}}
+function fp(v){if(v==null||isNaN(v))return'—';return(v>0?'+':'')+v.toFixed(2)+'%';}
+function fn(v,d=2){if(v==null||isNaN(v))return'—';return v.toLocaleString('en-IN',{minimumFractionDigits:d,maximumFractionDigits:d});}
+function fv(v){if(!v||isNaN(v))return'—';if(v>=1e7)return(v/1e7).toFixed(1)+'Cr';if(v>=1e5)return(v/1e5).toFixed(1)+'L';return v.toLocaleString('en-IN');}
+function pc(v){return v>0?'g':v<0?'r':'';}
+function parseBhavDate(s){if(!s)return null;const mo={JAN:1,FEB:2,MAR:3,APR:4,MAY:5,JUN:6,JUL:7,AUG:8,SEP:9,OCT:10,NOV:11,DEC:12};const[d,m,y]=s.trim().split('-');const mn=mo[m?.toUpperCase()];if(!mn)return null;return`${y}-${String(mn).padStart(2,'0')}-${d?.padStart(2,'0')}`;}
+
+// ── Parse MW CSV ────────────────────────────────────────────
+let niftyChg=NaN;
+function parseMW(rows){
+  niftyChg=NaN;
+  const out=[];
+  for(const rawRow of rows){
+    const row={};for(const k in rawRow)row[k.trim()]=typeof rawRow[k]==='string'?rawRow[k].trim():rawRow[k];
+    const sym=row.SYMBOL||'';
+    if(sym.toUpperCase().includes('NIFTY 500')){niftyChg=n(row['% CHANGE']);continue;}
+    if(!sym||sym==='SYMBOL')continue;
+    const o=n(row.OPEN),p=n(row['PREV. CLOSE']),l=n(row.LTP),c=n(row['% CHANGE']),v=n(row['VOLUME (shares)']);
+    const dh=n(row.HIGH),dl=n(row.LOW),h=n(row['52W H']),w=n(row['52W L']);
+    const d30=n(row['30 D %CHNG']),d365=n(row['365 D %CHNG']),cr=n(row['VALUE (Crores)']);
+    if(isNaN(l)||isNaN(p))continue;
+    const rs=(!isNaN(c)&&!isNaN(niftyChg))?parseFloat((c-niftyChg).toFixed(2)):NaN;
+    out.push({s:sym,o,p,l,c,v,dh,dl,h,w,d30,d365,cr,rs});
+  }
+  return out;
+}
+
+// ── File uploads ────────────────────────────────────────────
+let pendingRecs=null;
+document.getElementById('mainFile').addEventListener('change',e=>{if(e.target.files[0])handleMain(e.target.files[0]);e.target.value='';});
+document.getElementById('delivFile').addEventListener('change',e=>{if(e.target.files[0])handleDeliv(e.target.files[0]);e.target.value='';});
+
+function handleMain(file){
+  Papa.parse(file,{header:true,skipEmptyLines:true,complete:async res=>{
+    const recs=parseMW(res.data);
+    if(!recs.length){toast('No EQ rows found');return;}
+    const dateStr=parseBhavDate(res.data.find(r=>r.TIMESTAMP)?.TIMESTAMP)||new Date().toISOString().slice(0,10);
+    pendingRecs=recs;
+    const stg=document.getElementById('staging');
+    document.getElementById('stagingTxt').textContent=`${recs.length} stocks detected for:`;
+    document.getElementById('stagingDate').value=dateStr;
+    stg.classList.add('show');
+  }});
+}
+async function confirmUpload(){
+  const d=document.getElementById('stagingDate').value;
+  if(!d||!pendingRecs)return;
+  await saveDay(d,pendingRecs);
+  if(!daysIndex.includes(d)){daysIndex.push(d);daysIndex.sort();await saveDaysIndex();}
+  pendingRecs=null;document.getElementById('staging').classList.remove('show');
+  selectedDate=d;
+  await refresh();
+  toast(`Saved ${d} · ${daysIndex.length} day(s)`);
+}
+function cancelUpload(){pendingRecs=null;document.getElementById('staging').classList.remove('show');}
+
+function handleDeliv(file){
+  Papa.parse(file,{header:true,skipEmptyLines:true,transformHeader:h=>h.trim(),transform:(v)=>typeof v==='string'?v.trim():v,complete:async res=>{
+    const map={};let dateKey=null;
+    for(const row of res.data){
+      if((row.SERIES||'')!=='EQ')continue;
+      const sym=row.SYMBOL||'';const dp=parseFloat((row.DELIV_PER||'').replace(',',''));
+      if(sym&&!isNaN(dp))map[sym]=dp;
+      if(!dateKey&&row.DATE1){const mo={Jan:1,Feb:2,Mar:3,Apr:4,May:5,Jun:6,Jul:7,Aug:8,Sep:9,Oct:10,Nov:11,Dec:12};const[d,m,y]=(row.DATE1||'').split('-');const mn=mo[m];if(mn)dateKey=`${y}-${String(mn).padStart(2,'0')}-${d?.padStart(2,'0')}`;}
+    }
+    if(!dateKey)dateKey=selectedDate;
+    await saveDeliv(dateKey,map);
+    if(dateKey===selectedDate){delivByDate[dateKey]=map;}
+    toast(`Delivery data saved · ${Object.keys(map).length} stocks`);
+    await refresh();
+  }});
+}
+
+// ── Dashboard init ──────────────────────────────────────────
+async function initDashboard(){
+  await loadSettings();syncSettingsUI();await loadTheme();
+  await loadDaysIndex();
+  if(daysIndex.length){
+    selectedDate=daysIndex[daysIndex.length-1];
+    await loadDay(selectedDate);
+    await loadDeliv(selectedDate);
+    allRecords=dataByDate[selectedDate]||[];
+    await computeAllBadges();
+    updateDaySelect();
+  }
+  renderHome();
+  if(pendingScreen){openScreen(pendingScreen);pendingScreen=null;}
+}
+
+async function refresh(){
+  if(selectedDate){
+    await loadDay(selectedDate);
+    await loadDeliv(selectedDate);
+    allRecords=dataByDate[selectedDate]||[];
+    await loadRecentHistory();
+    _consecMap=computeConsecDays();
+    const wk=computeWeeklyTrend();
+    _wkUpSet=wk.up;_wkDnSet=wk.dn;
+  }
+  updateDaySelect();
+  renderHome();
+  renderDashTicker();
+  if(currentScreen&&currentScreen!=='home'){if(currentScreen==='indices')renderIndices();else renderScreen(currentScreen);}
+  if(trackerOpen)await renderTracker();
+}
+
+function updateDaySelect(){
+  const sel=document.getElementById('daySelect');
+  sel.style.display=daysIndex.length>0?'inline-block':'none';
+  sel.innerHTML=daysIndex.slice().reverse().map(d=>`<option value="${d}"${d===selectedDate?' selected':''}>${d}</option>`).join('');
+  sel.onchange=async e=>{selectedDate=e.target.value;await refresh();};
+  document.getElementById('dashMeta').textContent=selectedDate?`Viewing ${selectedDate} · ${daysIndex.length} day(s) tracked`:'No data yet — upload a CSV to start';
+}
+
+// ── Render Home (Advances/Declines) ─────────────────────────
+let advAll=[];let decAll=[];
+var advSort={col:'',dir:'desc'};var decSort={col:'',dir:'desc'};
+var idxDetailSort={col:'',dir:'desc'};var _currentIdxName='';var _currentIdxStocks=[];
+function renderHome(){
+  const recs=allRecords;
+  document.getElementById('dashTitle').textContent='Dashboard — Advances & Declines';
+
+  if(!recs.length){
+    // No data yet — show upload prompt
+    document.getElementById('homeKpis').innerHTML=`
+      <div class="adv-kpi" style="grid-column:span 5;text-align:center;padding:40px;">
+        <div style="font-size:36px;margin-bottom:12px;">📤</div>
+        <div style="font-family:'Orbitron',monospace;font-size:15px;font-weight:700;margin-bottom:8px;">No data uploaded yet</div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:20px;">Upload your NSE Market Watch CSV to see today's advances and declines</div>
+        <button class="btn-primary" onclick="document.getElementById('mainFile').click()" style="font-size:14px;padding:12px 28px;">↑ Upload CSV</button>
+      </div>`;
+    document.getElementById('advBody').innerHTML='<tr class="empty-row"><td colspan="4">Upload CSV to see advances</td></tr>';
+    document.getElementById('decBody').innerHTML='<tr class="empty-row"><td colspan="4">Upload CSV to see declines</td></tr>';
+    document.getElementById('advPill').textContent='0';
+    document.getElementById('decPill').textContent='0';
+    return;
+  }
+
+  const adv=recs.filter(r=>r.c>0).sort((a,b)=>b.c-a.c);
+  const dec=recs.filter(r=>r.c<0).sort((a,b)=>a.c-b.c);
+  advAll=adv;decAll=dec;
+  document.getElementById('advPill').textContent=adv.length;
+  document.getElementById('decPill').textContent=dec.length;
+  const unch=recs.filter(r=>r.c===0).length;
+  const avgChg=recs.reduce((s,r)=>s+(r.c||0),0)/recs.length;
+  document.getElementById('homeKpis').innerHTML=`
+    <div class="adv-kpi"><div class="lbl">Total Stocks</div><div class="val">${recs.length}</div></div>
+    <div class="adv-kpi"><div class="lbl">Advances</div><div class="val" style="color:var(--green);">${adv.length}</div></div>
+    <div class="adv-kpi"><div class="lbl">Declines</div><div class="val" style="color:var(--red);">${dec.length}</div></div>
+    <div class="adv-kpi"><div class="lbl">Unchanged</div><div class="val">${unch}</div></div>
+    <div class="adv-kpi"><div class="lbl">Avg % Chg</div><div class="val" style="color:${avgChg>=0?'var(--green)':' var(--red)'};font-size:18px;">${fp(avgChg)}</div></div>`;
+  renderAdvDecTable(adv,dec,'','');
+}
+function filterAdvDec(){
+  const aq=document.getElementById('advSearch').value.toLowerCase();
+  const dq=document.getElementById('decSearch').value.toLowerCase();
+  renderAdvDecTable(advAll,decAll,aq,dq);
+}
+function adColSort(col,which){
+  var st=which==='adv'?advSort:decSort;
+  if(st.col===col)st.dir=st.dir==='desc'?'asc':'desc';
+  else{st.col=col;st.dir='desc';}
+  var aq=(document.getElementById('advSearch')||{}).value||'';
+  var dq=(document.getElementById('decSearch')||{}).value||'';
+  renderAdvDecTable(advAll,decAll,aq.toLowerCase(),dq.toLowerCase());
+}
+
+function renderAdvDecTable(adv,dec,aq,dq){
+  var fa=aq?adv.filter(r=>r.s.toLowerCase().includes(aq)):adv.slice();
+  var fd=dq?dec.filter(r=>r.s.toLowerCase().includes(dq)):dec.slice();
+  // Apply sort
+  function sortArr(arr,st){
+    if(!st.col)return arr;
+    var asc=st.dir==='asc';
+    return arr.slice().sort(function(a,b){
+      var va=st.col==='sym'?a.s:st.col==='ltp'?a.l:st.col==='chg'?a.c:a.v||0;
+      var vb=st.col==='sym'?b.s:st.col==='ltp'?b.l:st.col==='chg'?b.c:b.v||0;
+      if(typeof va==='string')return asc?va.localeCompare(vb):vb.localeCompare(va);
+      return asc?va-vb:vb-va;
+    });
+  }
+  fa=sortArr(fa,advSort);fd=sortArr(fd,decSort);
+  document.getElementById('advPill').textContent=aq?fa.length+'/'+adv.length:adv.length;
+  document.getElementById('decPill').textContent=dq?fd.length+'/'+dec.length:dec.length;
+  // Build sortable headers
+  function mkHead(st,which){
+    var cols=[{k:'sym',l:'Symbol',al:'left'},{k:'ltp',l:'LTP',al:'right'},{k:'chg',l:'% Chg',al:'right'},{k:'vol',l:'Vol',al:'right'}];
+    return cols.map(function(c){
+      var isAct=st.col===c.k;
+      var clr=isAct?'#ff6b5b':'#64748b';
+      var fw=isAct?'700':'600';
+      var arrow=isAct?(st.dir==='desc'?'▼':'▲'):'⇅';
+      var th='<th style="text-align:'+c.al+';cursor:pointer;color:'+clr+';font-weight:'+fw+';user-select:none;"';
+      th+=' onclick="adColSort(\''+c.k+'\',\''+which+'\')">';
+      th+=c.l+' <span style="font-size:10px;opacity:'+(isAct?'1':'0.4')+'">'+ arrow +'</span></th>';
+      return th;
+    }).join('');
+  }
+  var ah=document.getElementById('advHead');if(ah)ah.innerHTML=mkHead(advSort,'adv');
+  var dh=document.getElementById('decHead');if(dh)dh.innerHTML=mkHead(decSort,'dec');
+  var row=function(r,cls){return '<tr><td>'+r.s+'</td><td class="num">'+fn(r.l)+'</td><td class="num '+cls+'">'+fp(r.c)+'</td><td class="num">'+fv(r.v)+'</td></tr>';};
+  document.getElementById('advBody').innerHTML=fa.length?fa.map(function(r){return row(r,'g');}).join(''):'<tr class="empty-row"><td colspan="4">No advances yet</td></tr>';
+  document.getElementById('decBody').innerHTML=fd.length?fd.map(function(r){return row(r,'r');}).join(''):'<tr class="empty-row"><td colspan="4">No declines yet</td></tr>';
+}
+
+// ── Screen definitions ──────────────────────────────────────
+const SCREENS={
+  gap:{name:'Gap Movers',desc:'Open ≥ 0.5% above/below prev close',icon:'⬆️',
+    fn:recs=>{const wg=recs.map(r=>({...r,gap:(r.o&&r.p)?((r.o-r.p)/r.p*100):NaN}));
+      const up=wg.filter(r=>!isNaN(r.gap)&&r.gap>=S.gap).sort((a,b)=>b.gap-a.gap);
+      const dn=wg.filter(r=>!isNaN(r.gap)&&r.gap<=-S.gap).sort((a,b)=>a.gap-b.gap);
+      return[...up,...dn.map(r=>({...r,_grp:'down'}))];},
+    cols:['Symbol','LTP','% Chg','Gap %','RS','30D %'],
+    row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:r.gap?((r.gap>0?'+':'')+r.gap.toFixed(2)+'%'):'—',cls:r.gap>0?'g':'r'},{v:fp(r.rs),cls:pc(r.rs)},{v:fp(r.d30),cls:pc(r.d30)}]},
+  big:{name:'Big Movers ≥5%',desc:'Strong directional close-to-close',icon:'🚀',
+    fn:recs=>[...recs.filter(r=>r.c>=S.big).sort((a,b)=>b.c-a.c),...recs.filter(r=>r.c<=-S.big).sort((a,b)=>a.c-b.c)],
+    cols:['Symbol','LTP','% Chg','RS','Vol','30D %'],
+    row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:fp(r.rs),cls:pc(r.rs)},fv(r.v),{v:fp(r.d30),cls:pc(r.d30)}]},
+  mid:{name:'Mid-Range Movers 1–4%',desc:'Solid momentum, not extreme',icon:'📊',
+    fn:recs=>[...recs.filter(r=>r.c>=S.midMin&&r.c<=S.midMax).sort((a,b)=>b.c-a.c),...recs.filter(r=>r.c<=-S.midMin&&r.c>=-S.midMax).sort((a,b)=>a.c-b.c)],
+    cols:['Symbol','LTP','% Chg','RS','Vol/Cr','30D %'],
+    row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:fp(r.rs),cls:pc(r.rs)},fn(r.cr,1),{v:fp(r.d30),cls:pc(r.d30)}]},
+  side:{name:'Sideways Stocks',desc:'Coiling 0.01–0.30%',icon:'➡️',
+    fn:recs=>[...recs.filter(r=>r.c>=S.sideMin&&r.c<=S.sideMax).sort((a,b)=>b.c-a.c),...recs.filter(r=>r.c<=-S.sideMin&&r.c>=-S.sideMax).sort((a,b)=>a.c-b.c)],
+    cols:['Symbol','LTP','% Chg','RS','Range %','30D %'],
+    row:r=>{const rng=r.dh&&r.dl&&r.p?((r.dh-r.dl)/r.p*100):NaN;return[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:fp(r.rs),cls:pc(r.rs)},{v:isNaN(rng)?'—':rng.toFixed(2)+'%',cls:''},fp(r.d30)]}},
+  candle:{name:'Candle Close Position',desc:'Bull = top 80%+ of range · Bear = bottom 20%',icon:'🕯️',
+    fn:recs=>{const wr=recs.map(r=>({...r,cpos:(r.dh&&r.dl&&r.dh!==r.dl)?((r.l-r.dl)/(r.dh-r.dl)*100):NaN,rng:(r.dh&&r.dl&&r.p)?((r.dh-r.dl)/r.p*100):NaN}));
+      return[...wr.filter(r=>r.cpos>=80&&r.rng>=1.5).sort((a,b)=>b.cpos-a.cpos),...wr.filter(r=>r.cpos<=20&&r.rng>=1.5).sort((a,b)=>a.cpos-b.cpos)];},
+    cols:['Symbol','LTP','% Chg','Close Pos','Range %','30D %'],
+    row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:isNaN(r.cpos)?'—':r.cpos.toFixed(0)+'%',cls:r.cpos>=80?'g':r.cpos<=20?'r':''},isNaN(r.rng)?'—':r.rng.toFixed(2)+'%',{v:fp(r.d30),cls:pc(r.d30)}]},
+  grev:{name:'Gap Reversal',desc:'Gapped one way, moved opposite intraday',icon:'🔄',
+    fn:recs=>{const wr=recs.map(r=>({...r,gp:(r.o&&r.p)?((r.o-r.p)/r.p*100):NaN,dm:r.o?((r.l-r.o)/r.o*100):NaN}));
+      return[...wr.filter(r=>r.gp<=-0.5&&r.dm>=0.5).sort((a,b)=>a.gp-b.gp),...wr.filter(r=>r.gp>=0.5&&r.dm<=-0.5).sort((a,b)=>b.gp-a.gp)];},
+    cols:['Symbol','LTP','% Chg','Gap %','Recovery %','RS'],
+    row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:isNaN(r.gp)?'—':fp(r.gp),cls:pc(r.gp)},{v:isNaN(r.dm)?'—':fp(r.dm),cls:pc(r.dm)},{v:fp(r.rs),cls:pc(r.rs)}]},
+  hvol:{name:'High Volume Leaders',desc:'Price > ₹150, sorted by volume',icon:'📦',
+    fn:recs=>recs.filter(r=>r.l>S.price&&!isNaN(r.v)&&r.v>=(S.vol||0)).sort((a,b)=>b.v-a.v),
+    cols:['Symbol','LTP','% Chg','RS','Volume','Del %','30D %'],
+    row:r=>{const dp=(delivByDate[selectedDate]||{})[r.s];return[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:fp(r.rs),cls:pc(r.rs)},fv(r.v),dp!==undefined?{v:dp.toFixed(1)+'%',cls:dp>=60?'g':dp<30?'r':''}:'—',{v:fp(r.d30),cls:pc(r.d30)}]}},
+  tval:{name:'Traded Value Leaders',desc:'Ranked by ₹ Crores traded today',icon:'💰',
+    fn:recs=>recs.filter(r=>!isNaN(r.cr)&&r.cr>0).sort((a,b)=>b.cr-a.cr),
+    cols:['Symbol','LTP','% Chg','RS','₹ Cr','Del %','30D %'],
+    row:r=>{const dp=(delivByDate[selectedDate]||{})[r.s];return[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:fp(r.rs),cls:pc(r.rs)},{v:'₹'+fn(r.cr,1),cls:'',style:'color:var(--cyan)'},dp!==undefined?{v:dp.toFixed(1)+'%',cls:dp>=60?'g':dp<30?'r':''}:'—',{v:fp(r.d30),cls:pc(r.d30)}]}},
+  range:{name:'Intraday Range %',desc:'9:15 AM → 3:30 PM movement (HIGH-LOW/PREV.CLOSE)',icon:'📏',
+    fn:recs=>{const wr=recs.map(r=>({...r,rng:(r.dh&&r.dl&&r.p)?((r.dh-r.dl)/r.p*100):NaN})).filter(r=>!isNaN(r.rng)&&r.rng>=2);
+      return wr.sort((a,b)=>b.rng-a.rng);},
+    cols:['Symbol','LTP','% Chg','RS','Range %','Vol/Cr','30D %'],
+    row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:fp(r.rs),cls:pc(r.rs)},{v:r.rng.toFixed(2)+'%',cls:''},fn(r.cr,1),{v:fp(r.d30),cls:pc(r.d30)}]},
+  consec:{name:'Consecutive Up/Down Days',desc:'Closing same direction N days in a row',icon:'📈',
+    fn:recs=>recs.sort((a,b)=>b.c-a.c),cols:['Symbol','LTP','% Chg','RS','30D %','365D %'],
+    row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:fp(r.rs),cls:pc(r.rs)},{v:fp(r.d30),cls:pc(r.d30)},{v:fp(r.d365),cls:pc(r.d365)}]},
+  wku:{name:'Weekly Uptrend W↑',desc:'Closed higher 3+ of last 5 days',icon:'🟢',
+    fn:recs=>recs.filter(r=>r.c>0).sort((a,b)=>b.c-a.c),
+    cols:['Symbol','LTP','% Chg','RS','Vol','30D %'],
+    row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:'g'},{v:fp(r.rs),cls:pc(r.rs)},fv(r.v),{v:fp(r.d30),cls:pc(r.d30)}]},
+  wkd:{name:'Weekly Downtrend W↓',desc:'Closed lower 3+ of last 5 days',icon:'🔴',
+    fn:recs=>recs.filter(r=>r.c<0).sort((a,b)=>a.c-b.c),
+    cols:['Symbol','LTP','% Chg','RS','Vol','30D %'],
+    row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:'r'},{v:fp(r.rs),cls:pc(r.rs)},fv(r.v),{v:fp(r.d30),cls:pc(r.d30)}]},
+  nr7:{name:'NR7 — Narrowest Range in 7 Days',desc:'Strongest IB breakout setup for tomorrow',icon:'🎯',
+    fn:recs=>{const wr=recs.map(r=>({...r,rng:(r.dh&&r.dl&&r.p)?((r.dh-r.dl)/r.p*100):NaN})).filter(r=>!isNaN(r.rng));return wr.sort((a,b)=>a.rng-b.rng);},
+    cols:['Symbol','LTP','% Chg','RS','Range %','Del %','30D %'],
+    row:r=>{const dp=(delivByDate[selectedDate]||{})[r.s];return[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:fp(r.rs),cls:pc(r.rs)},{v:isNaN(r.rng)?'—':r.rng.toFixed(2)+'%',cls:''},dp!==undefined?{v:dp.toFixed(1)+'%',cls:dp>=60?'g':dp<30?'r':''}:'—',{v:fp(r.d30),cls:pc(r.d30)}]}},
+  nr4:{name:'NR4 — Narrowest Range in 4 Days',desc:'Early breakout watch',icon:'🔭',
+    fn:recs=>{const wr=recs.map(r=>({...r,rng:(r.dh&&r.dl&&r.p)?((r.dh-r.dl)/r.p*100):NaN})).filter(r=>!isNaN(r.rng));return wr.sort((a,b)=>a.rng-b.rng);},
+    cols:['Symbol','LTP','% Chg','RS','Range %','Del %','30D %'],
+    row:r=>{const dp=(delivByDate[selectedDate]||{})[r.s];return[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:fp(r.rs),cls:pc(r.rs)},{v:isNaN(r.rng)?'—':r.rng.toFixed(2)+'%',cls:''},dp!==undefined?{v:dp.toFixed(1)+'%',cls:dp>=60?'g':dp<30?'r':''}:'—',{v:fp(r.d30),cls:pc(r.d30)}]}},
+  hammer:{name:'Hammer 🔨 — Bullish Reversal',desc:'Long lower shadow ≥2%, body ≤1%',icon:'🔨',
+    fn:recs=>{return recs.map(r=>{const body=Math.abs(r.l-r.o)/r.p*100;const ls=(Math.min(r.o,r.l)-r.dl)/r.p*100;return{...r,body,ls};}).filter(r=>r.ls>=S.shadow&&r.body<=S.body&&r.ls>=2*Math.max(r.body,0.01)).sort((a,b)=>b.ls-a.ls);},
+    cols:['Symbol','LTP','% Chg','RS','Shadow %','Del %','30D %'],
+    row:r=>{const dp=(delivByDate[selectedDate]||{})[r.s];return[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:fp(r.rs),cls:pc(r.rs)},{v:r.ls?r.ls.toFixed(2)+'%':'—',cls:'g'},dp!==undefined?{v:dp.toFixed(1)+'%',cls:dp>=60?'g':dp<30?'r':''}:'—',{v:fp(r.d30),cls:pc(r.d30)}]}},
+  star:{name:'Shooting Star ⭐ — Bearish Reversal',desc:'Long upper shadow ≥2%, body ≤1%',icon:'⭐',
+    fn:recs=>{return recs.map(r=>{const body=Math.abs(r.l-r.o)/r.p*100;const us=(r.dh-Math.max(r.o,r.l))/r.p*100;return{...r,body,us};}).filter(r=>r.us>=S.shadow&&r.body<=S.body&&r.us>=2*Math.max(r.body,0.01)).sort((a,b)=>b.us-a.us);},
+    cols:['Symbol','LTP','% Chg','RS','Shadow %','Del %','30D %'],
+    row:r=>{const dp=(delivByDate[selectedDate]||{})[r.s];return[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:fp(r.rs),cls:pc(r.rs)},{v:r.us?r.us.toFixed(2)+'%':'—',cls:'r'},dp!==undefined?{v:dp.toFixed(1)+'%',cls:dp>=60?'g':dp<30?'r':''}:'—',{v:fp(r.d30),cls:pc(r.d30)}]}},
+  ndh:{name:'New N-Day Closing High',desc:'Highest closing price in last N days',icon:'🏔️',
+    fn:recs=>recs.filter(r=>r.c>0).sort((a,b)=>b.c-a.c),
+    cols:['Symbol','LTP','% Chg','RS','30D %','365D %'],
+    row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:'g'},{v:fp(r.rs),cls:pc(r.rs)},{v:fp(r.d30),cls:pc(r.d30)},{v:fp(r.d365),cls:pc(r.d365)}]},
+  ndl:{name:'New N-Day Closing Low',desc:'Lowest closing price in last N days',icon:'🕳️',
+    fn:recs=>recs.filter(r=>r.c<0).sort((a,b)=>a.c-b.c),
+    cols:['Symbol','LTP','% Chg','RS','30D %','365D %'],
+    row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:'r'},{v:fp(r.rs),cls:pc(r.rs)},{v:fp(r.d30),cls:pc(r.d30)},{v:fp(r.d365),cls:pc(r.d365)}]},
+  '52prox':{name:'52W Proximity',desc:'1–20% from 52-week high or low',icon:'📌',
+    fn:recs=>recs.map(r=>({...r,distH:r.h&&r.l?(r.h-r.l)/r.h*100:NaN,distL:r.w&&r.l?(r.l-r.w)/r.w*100:NaN})).filter(r=>(!isNaN(r.distH)&&r.distH>=S.p52min&&r.distH<=S.p52max)||(!isNaN(r.distL)&&r.distL>=S.p52min&&r.distL<=S.p52max)).sort((a,b)=>(isNaN(a.distH)?999:a.distH)-(isNaN(b.distH)?999:b.distH)),
+    cols:['Symbol','LTP','% Chg','Dist 52H%','Dist 52L%','RS','30D %'],
+    row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},isNaN(r.distH)?'—':r.distH.toFixed(2)+'%',isNaN(r.distL)?'—':r.distL.toFixed(2)+'%',{v:fp(r.rs),cls:pc(r.rs)},{v:fp(r.d30),cls:pc(r.d30)}]},
+  delhi:{name:'High Delivery DEL↑ ≥60%',desc:'Institutional conviction — sustained buying/selling',icon:'🏦',
+    fn:recs=>{const dm=delivByDate[selectedDate]||{};return recs.filter(r=>dm[r.s]>=S.delHigh).map(r=>({...r,dp:dm[r.s]})).sort((a,b)=>b.dp-a.dp);},
+    cols:['Symbol','LTP','% Chg','RS','Del %','Vol','30D %'],
+    row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:fp(r.rs),cls:pc(r.rs)},{v:r.dp.toFixed(1)+'%',cls:'g'},fv(r.v),{v:fp(r.d30),cls:pc(r.d30)}]},
+  dello:{name:'Low Delivery SPC <30%',desc:'Pure intraday speculation — likely to reverse',icon:'⚡',
+    fn:recs=>{const dm=delivByDate[selectedDate]||{};return recs.filter(r=>dm[r.s]!==undefined&&dm[r.s]<S.delLow).map(r=>({...r,dp:dm[r.s]})).sort((a,b)=>a.dp-b.dp);},
+    cols:['Symbol','LTP','% Chg','RS','Del %','Vol','30D %'],
+    row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:fp(r.rs),cls:pc(r.rs)},{v:r.dp.toFixed(1)+'%',cls:'r'},fv(r.v),{v:fp(r.d30),cls:pc(r.d30)}]},
+  ddstreak:{name:'Delivery Streak DD',desc:'High delivery % for 2+ consecutive days',icon:'🔥',
+    fn:recs=>{const dm=delivByDate[selectedDate]||{};return recs.filter(r=>dm[r.s]>=S.delHigh).map(r=>({...r,dp:dm[r.s]})).sort((a,b)=>b.dp-a.dp);},
+    cols:['Symbol','LTP','% Chg','RS','Del %','30D %'],
+    row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:fp(r.rs),cls:pc(r.rs)},{v:r.dp.toFixed(1)+'%',cls:'g'},{v:fp(r.d30),cls:pc(r.d30)}]},
+  risingdel:{name:'Rising Delivery',desc:'Delivery % increasing every day',icon:'📶',
+    fn:recs=>{const dm=delivByDate[selectedDate]||{};return recs.filter(r=>dm[r.s]>=S.delHigh).map(r=>({...r,dp:dm[r.s]})).sort((a,b)=>b.dp-a.dp);},
+    cols:['Symbol','LTP','% Chg','RS','Del % Today','30D %'],
+    row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:fp(r.rs),cls:pc(r.rs)},{v:r.dp.toFixed(1)+'%',cls:'g'},{v:fp(r.d30),cls:pc(r.d30)}]},
+  dd3plus:{name:'DD3+ Delivery Leaders 🏆',desc:'Institutional accumulation 3+ consecutive days',icon:'🏆',
+    fn:recs=>{const dm=delivByDate[selectedDate]||{};return recs.filter(r=>dm[r.s]>=S.delHigh).map(r=>({...r,dp:dm[r.s]})).sort((a,b)=>b.dp-a.dp);},
+    cols:['Symbol','LTP','% Chg','RS','Del %','Vol','30D %'],
+    row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:fp(r.rs),cls:pc(r.rs)},{v:r.dp.toFixed(1)+'%',cls:'g'},fv(r.v),{v:fp(r.d30),cls:pc(r.d30)}]},
+  multi:{name:'Multi-Screen Confluences',desc:'Same stock in multiple screens today',icon:'🎯',
+    fn:recs=>recs.sort((a,b)=>b.c-a.c),
+    cols:['Symbol','LTP','% Chg','RS','30D %','365D %'],
+    row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:fp(r.rs),cls:pc(r.rs)},{v:fp(r.d30),cls:pc(r.d30)},{v:fp(r.d365),cls:pc(r.d365)}]},
+};
+
+// ── Render dynamic screen ───────────────────────────────────
+let spCurrentRows=[];
+function renderScreen(id){
+  activeChips={};
+  document.querySelectorAll('.filter-chip').forEach(function(b){b.classList.remove('on');});
+  var mc=document.getElementById('fMinChg');if(mc)mc.value='';
+  var mr=document.getElementById('fMinRS');if(mr)mr.value='';
+  var sb=document.getElementById('fSortBy');if(sb)sb.value='';
+  const def=SCREENS[id];
+  if(!def){toast('Screen not found: '+id);return;}
+  const rows=allRecords.length?def.fn(allRecords):[];
+  spCurrentRows=rows;
+  var titleEl=document.getElementById('spTitle');
+  if(titleEl)titleEl.textContent=def.icon+' '+def.name;
+  var dashTitleEl=document.getElementById('dashTitle');
+  if(dashTitleEl)dashTitleEl.textContent=def.name;
+  var descEl=document.getElementById('spCardDesc');
+  if(descEl)descEl.textContent=def.desc;
+  var countEl=document.getElementById('spCount');
+  if(countEl)countEl.textContent=rows.length+' stocks';
+  document.getElementById('spCount').textContent=rows.length+' stocks';
+  var sqEl=document.getElementById('spSearch');if(sqEl)sqEl.value='';
+  renderSPTable(rows,def);
+  if(currentView==='heatmap')renderHeatmap(rows);
+}
+function filterSP(){
+  const q=(document.getElementById('spSearch').value||'').toLowerCase().trim();
+  const def=SCREENS[currentScreen];
+  if(!def)return;
+  const filtered=q?spCurrentRows.filter(r=>r.s&&r.s.toLowerCase().includes(q)):spCurrentRows;
+  document.getElementById('spCount').textContent=q?`${filtered.length}/${spCurrentRows.length}`:spCurrentRows.length;
+  document.getElementById('spCount').textContent=(q?`${filtered.length}/${spCurrentRows.length}`:spCurrentRows.length)+' stocks';
+  renderSPTable(filtered,def);
+}
+function renderSPTable(rows,def){
+  // Header
+  var allCols=def.cols;
+  document.getElementById('spHead').innerHTML=allCols.map(function(col){
+    var isAct=spSortCol===col;
+    var arr=isAct?(spSortDir==='desc'?'▼':'▲'):'⇅';
+    var sc=COL_SORT&&COL_SORT[col]?'onclick="headerSort(\''+col+'\')" style="cursor:pointer;"':'';
+    return '<th class="'+(isAct?'th-active':'')+'" '+sc+'>'+col+' <span class="sort-arrow">'+arr+'</span></th>';
+  }).join('');
+  // Body
+  if(!rows.length){
+    const hint=allRecords.length?'No stocks match this screen today':'Upload CSV to see data';
+    var _sb=document.getElementById('spBody');if(_sb)_sb.innerHTML=`<tr class="empty-row"><td colspan="${def.cols.length}">${hint}</td></tr>`;
+    return;
+  }
+  var spBody=document.getElementById('spBody');if(!spBody)return;
+  spBody.innerHTML=rows.map(r=>{
+    const cells=def.row(r);
+    return'<tr>'+cells.map((c,i)=>{
+      if(i===0){
+        // Symbol cell — always add history badges
+        const sym=typeof c==='string'?c:(c&&c.v?c.v:String(c));
+        return`<td style="font-weight:600;">${sym}${symBadges(sym)}</td>`;
+      }
+      if(typeof c==='object'&&c!==null&&'v'in c){
+        const st=c.style?` style="${c.style}"`:'';
+        return`<td class="${c.cls||''}"${st}>${c.v}</td>`;
+      }
+      return`<td>${c}</td>`;
+    }).join('')+'</tr>';
+  }).join('');
+}
+
+// ── Toast ────────────────────────────────────────────────────
+function toast(msg){
+  let t=document.getElementById('toast');
+  if(!t){t=document.createElement('div');t.id='toast';t.style.cssText='position:fixed;bottom:20px;right:20px;background:var(--panel2);border:1px solid var(--cyan);padding:10px 16px;border-radius:7px;font-size:13px;z-index:999;transition:opacity .2s;';document.body.appendChild(t);}
+  t.textContent=msg;t.style.opacity='1';
+  clearTimeout(t._t);t._t=setTimeout(()=>t.style.opacity='0',2500);
+}
+
+// ── Landing page candlesticks ────────────────────────────────
+const cc=document.getElementById('candles');
+for(let i=0;i<30;i++){
+  const h=40+Math.random()*320,col=Math.random()>.4?'#10d98e':'#ff4757';
+  const c=document.createElement('div');
+  c.style.cssText=`width:17px;height:${h}px;background:${col};border-radius:2px 2px 0 0;opacity:.1;animation:candleMove ${3+Math.random()*4}s ease-in-out ${Math.random()*3}s infinite;--scale:${0.5+Math.random()*.8};flex-shrink:0;`;
+  cc.appendChild(c);
+}
+
+// ── Ticker ───────────────────────────────────────────────────
+const stocks=[{s:'NIFTY 500',c:'+0.76%',g:true},{s:'RELIANCE',c:'+1.24%',g:true},{s:'TCS',c:'-0.42%',g:false},{s:'HDFC BANK',c:'+0.88%',g:true},{s:'INFY',c:'-0.65%',g:false},{s:'TATAMOTORS',c:'+2.31%',g:true},{s:'MARUTI',c:'+5.52%',g:true},{s:'KPITTECH',c:'-5.86%',g:false},{s:'OLAELEC',c:'+8.35%',g:true},{s:'COCHINSHIP',c:'+6.05%',g:true}];
+const t=document.getElementById('ticker');
+[...stocks,...stocks].forEach(s=>{const e=document.createElement('div');e.className='tick-item';e.innerHTML=`<span class="sym">${s.s}</span><span class="chg ${s.g?'g':'r'}">${s.c}</span>`;t.appendChild(e);});
+
+// ── Global vars for badges & tracker ──────────────────────────────────────
+var _consecMap={};
+var _wkUpSet=new Set();
+var _wkDnSet=new Set();
+var _histMaps={};
+var trackerOpen=false;
+
+async function loadRecentHistory(){
+  if(!selectedDate)return;
+  var latestIdx=daysIndex.indexOf(selectedDate);
+  var recent=daysIndex.slice(Math.max(0,latestIdx-29),latestIdx+1);
+  for(var d of recent){
+    if(!dataByDate[d])await loadDay(d);
+    if(!_histMaps[d]&&dataByDate[d]){_histMaps[d]={};dataByDate[d].forEach(function(r){_histMaps[d][r.s]=r;});}
+  }
+}
+
+function computeConsecDays(){
+  var map={};
+  var latestIdx=daysIndex.indexOf(selectedDate);
+  if(latestIdx<1)return map;
+  var dates=daysIndex.slice(Math.max(0,latestIdx-29),latestIdx+1);
+  var latest=_histMaps[selectedDate]||{};
+  Object.keys(latest).forEach(function(sym){
+    var up=0,dn=0;
+    for(var i=dates.length-1;i>=1;i--){
+      var td=(_histMaps[dates[i]]||{})[sym];
+      var pr=(_histMaps[dates[i-1]]||{})[sym];
+      if(!td||!pr)break;
+      var diff=td.l-pr.l;
+      if(diff>0){if(dn>0)break;up++;}else if(diff<0){if(up>0)break;dn++;}else break;
+    }
+    if(up>=1||dn>=1)map[sym]={up:up,dn:dn};
+  });
+  return map;
+}
+
+function computeWeeklyTrend(){
+  var latestIdx=daysIndex.indexOf(selectedDate);
+  if(latestIdx<3)return{up:new Set(),dn:new Set()};
+  var win=daysIndex.slice(Math.max(0,latestIdx-4),latestIdx+1);
+  var up=new Set(),dn=new Set();
+  var latest=_histMaps[selectedDate]||{};
+  Object.keys(latest).forEach(function(sym){
+    var upD=0,dnD=0,chk=0;
+    for(var i=1;i<win.length;i++){
+      var td=(_histMaps[win[i]]||{})[sym];
+      var pr=(_histMaps[win[i-1]]||{})[sym];
+      if(!td||!pr)continue;
+      if(td.l>pr.l)upD++;else if(td.l<pr.l)dnD++;chk++;
+    }
+    if(chk>=3){if(upD>=3)up.add(sym);else if(dnD>=3)dn.add(sym);}
+  });
+  return{up:up,dn:dn};
+}
+
+function mkBadge(bg,co,bd,txt){
+  return '<span style="font-size:9px;background:'+bg+';color:'+co+';border:1px solid '+bd+';padding:1px 5px;border-radius:3px;margin-left:3px;font-family:JetBrains Mono,monospace;">'+txt+'</span>';
+}
+
+function symBadges(sym){
+  var b='';
+  var c=_consecMap[sym];
+  if(c&&c.up>=2)b+=mkBadge('rgba(0,230,118,.12)','#00e676','rgba(0,230,118,.25)','\u2191'+c.up);
+  if(c&&c.dn>=2)b+=mkBadge('rgba(255,82,82,.12)','#ff5252','rgba(255,82,82,.25)','\u2193'+c.dn);
+  if(_wkUpSet.has(sym))b+=mkBadge('rgba(105,240,174,.12)','#69f0ae','rgba(105,240,174,.28)','W\u2191');
+  if(_wkDnSet.has(sym))b+=mkBadge('rgba(255,110,110,.12)','#ff6e6e','rgba(255,110,110,.28)','W\u2193');
+  return b;
+}
+
+function toggleTracker(){
+  trackerOpen=!trackerOpen;
+  var wrap=document.getElementById('fileTrackerWrap');
+  if(wrap)wrap.style.display=trackerOpen?'block':'none';
+  if(trackerOpen)renderTracker();
+}
+
+async function renderTracker(){
+  var mwDays=daysIndex.slice().reverse();
+  var mwRows='';
+  for(var d of mwDays){
+    if(!dataByDate[d])await loadDay(d);
+    var cnt=(dataByDate[d]||[]).length;
+    var isSel=d===selectedDate;
+    mwRows+='<tr>';
+    mwRows+='<td style="font-family:JetBrains Mono,monospace;font-size:12px;'+(isSel?'color:var(--coral);font-weight:700;':'color:var(--text);')+'">'+d+(isSel?' 📍':'')+'</td>';
+    mwRows+='<td style="text-align:center;font-size:16px;">✅</td>';
+    mwRows+='<td style="text-align:right;font-family:JetBrains Mono,monospace;font-size:12px;color:var(--muted);">'+(cnt||'—')+'</td>';
+    mwRows+='<td style="text-align:center;"><button class="del-row-btn" onclick="deleteDay(\''+d+'\',this)">🗑</button></td>';
+    mwRows+='</tr>';
+  }
+  var mwBody=document.getElementById('mwTrackerBody');
+  var mwCount=document.getElementById('mwCount');
+  if(mwBody)mwBody.innerHTML=mwRows||'<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:16px;">No MW CSV uploaded yet</td></tr>';
+  if(mwCount)mwCount.textContent=daysIndex.length+' days';
+
+  var delRows='';var delCnt=0;
+  for(var d2 of mwDays){
+    var hasD=false;var dCnt=0;
+    try{var r=await _store.get('kx_del:'+d2);if(r&&r.value){var m=JSON.parse(r.value);dCnt=Object.keys(m).length;hasD=dCnt>0;}}catch(e){}
+    if(hasD)delCnt++;
+    var isSel2=d2===selectedDate;
+    delRows+='<tr>';
+    delRows+='<td style="font-family:JetBrains Mono,monospace;font-size:12px;'+(isSel2?'color:var(--coral);font-weight:700;':'color:var(--text);')+'">'+d2+(isSel2?' 📍':'')+'</td>';
+    delRows+='<td style="text-align:center;font-size:16px;">'+(hasD?'✅':'❌')+'</td>';
+    delRows+='<td style="text-align:right;font-family:JetBrains Mono,monospace;font-size:12px;color:var(--muted);">'+(hasD?dCnt:'—')+'</td>';
+    delRows+='<td style="text-align:center;">'+(hasD?'<button class="del-row-btn" onclick="deleteBhav(\''+d2+'\',this)">🗑</button>':'<span style="color:var(--muted);font-size:12px;">—</span>')+'</td>';
+    delRows+='</tr>';
+  }
+  var delBody=document.getElementById('delTrackerBody');
+  var delCount=document.getElementById('delCount');
+  if(delBody)delBody.innerHTML=delRows||'<tr><td colspan="3" style="text-align:center;color:var(--muted);padding:16px;">No Bhavdata uploaded yet</td></tr>';
+  if(delCount)delCount.textContent=delCnt+' of '+daysIndex.length+' days';
+}
+
+// ── SETTINGS ───────────────────────────────────────────────────────────────
+const DEFAULT_S={gap:0.5,big:5,midMin:1,midMax:4,sideMin:0.01,sideMax:0.30,price:150,vol:1000000,shadow:2,body:1,nday:20,p52min:1,p52max:20,delHigh:60,delLow:30,pin:'kokixio'};
+var S={...DEFAULT_S};
+
+async function loadSettings(){
+  try{var r=await _store.get('kx_settings');if(r&&r.value)S={...DEFAULT_S,...JSON.parse(r.value)};}catch{}
+}
+async function saveSettings(){
+  var newPin=document.getElementById('st-pin').value;
+  var newPin2=document.getElementById('st-pin2').value;
+  if(newPin&&newPin!==newPin2){document.getElementById('pinMsg').textContent='PINs do not match';document.getElementById('pinMsg').style.color='var(--red)';return;}
+  S.gap=parseFloat(document.getElementById('st-gap').value)||S.gap;
+  S.big=parseFloat(document.getElementById('st-big').value)||S.big;
+  S.midMin=parseFloat(document.getElementById('st-midMin').value)||S.midMin;
+  S.midMax=parseFloat(document.getElementById('st-midMax').value)||S.midMax;
+  S.sideMin=parseFloat(document.getElementById('st-sideMin').value)||S.sideMin;
+  S.sideMax=parseFloat(document.getElementById('st-sideMax').value)||S.sideMax;
+  S.price=parseFloat(document.getElementById('st-price').value)||S.price;
+  S.vol=parseFloat(document.getElementById('st-vol').value)||S.vol;
+  S.shadow=parseFloat(document.getElementById('st-shadow').value)||S.shadow;
+  S.body=parseFloat(document.getElementById('st-body').value)||S.body;
+  S.nday=parseInt(document.getElementById('st-nday').value)||S.nday;
+  S.p52min=parseFloat(document.getElementById('st-52min').value)||S.p52min;
+  S.p52max=parseFloat(document.getElementById('st-52max').value)||S.p52max;
+  S.delHigh=parseFloat(document.getElementById('st-delHigh').value)||S.delHigh;
+  S.delLow=parseFloat(document.getElementById('st-delLow').value)||S.delLow;
+  if(newPin)S.pin=newPin;
+  try{await _store.set('kx_settings',JSON.stringify(S));}catch{}
+  document.getElementById('pinMsg').textContent='Settings saved ✓';
+  document.getElementById('pinMsg').style.color='var(--green)';
+  document.getElementById('st-pin').value='';
+  document.getElementById('st-pin2').value='';
+  toast('Settings saved ✓');
+}
+function resetSettings(){
+  if(!confirm('Reset all settings to defaults?'))return;
+  S={...DEFAULT_S};
+  syncSettingsUI();
+  toast('Reset to defaults');
+}
+function syncSettingsUI(){
+  var flds={gap:S.gap,big:S.big,midMin:S.midMin,midMax:S.midMax,sideMin:S.sideMin,sideMax:S.sideMax,price:S.price,vol:S.vol,shadow:S.shadow,body:S.body,nday:S.nday,'52min':S.p52min,'52max':S.p52max,delHigh:S.delHigh,delLow:S.delLow};
+  Object.entries(flds).forEach(function(e){var el=document.getElementById('st-'+e[0]);if(el)el.value=e[1];});
+}
+
+// ── EXPANDED BADGE GLOBALS ────────────────────────────────────────────────
+var _nr7Set=new Set();var _nr4Set=new Set();
+var _nhSet=new Set();var _nlSet=new Set();
+var _hammerSet=new Set();var _starSet=new Set();
+var _delHiSet=new Set();var _delLoSet=new Set();
+var _dd3Set=new Set();
+var _delivHistData={};
+
+async function loadDelivHistory(){
+  if(!selectedDate)return;
+  var idx=daysIndex.indexOf(selectedDate);
+  var recent=daysIndex.slice(Math.max(0,idx-6),idx+1);
+  for(var d of recent){
+    if(!_delivHistData[d]){
+      try{var r=await _store.get('kx_del:'+d);if(r&&r.value)_delivHistData[d]=JSON.parse(r.value);}catch{}
+    }
+  }
+}
+
+function computeNRSets(){
+  var nr7=new Set();var nr4=new Set();
+  var idx=daysIndex.indexOf(selectedDate);
+  if(idx<3)return{nr7:nr7,nr4:nr4};
+  var today=_histMaps[selectedDate]||{};
+  Object.keys(today).forEach(function(sym){
+    var r=today[sym];
+    if(isNaN(r.dh)||isNaN(r.dl)||!r.p)return;
+    var todayRng=r.dh-r.dl;
+    // NR4
+    var isNR4=true;
+    for(var i=Math.max(0,idx-3);i<idx;i++){
+      var h=(_histMaps[daysIndex[i]]||{})[sym];
+      if(!h||isNaN(h.dh)||isNaN(h.dl)){isNR4=false;break;}
+      if(todayRng>=(h.dh-h.dl)){isNR4=false;break;}
+    }
+    if(isNR4&&idx>=3)nr4.add(sym);
+    // NR7
+    var isNR7=true;
+    if(idx<6){isNR7=false;}
+    else{
+      for(var j=Math.max(0,idx-6);j<idx;j++){
+        var h2=(_histMaps[daysIndex[j]]||{})[sym];
+        if(!h2||isNaN(h2.dh)||isNaN(h2.dl)){isNR7=false;break;}
+        if(todayRng>=(h2.dh-h2.dl)){isNR7=false;break;}
+      }
+    }
+    if(isNR7)nr7.add(sym);
+  });
+  return{nr7:nr7,nr4:nr4};
+}
+
+function computeNDaySets(){
+  var hi=new Set();var lo=new Set();
+  var N=S.nday||20;
+  var idx=daysIndex.indexOf(selectedDate);
+  if(idx<N-1)return{hi:hi,lo:lo};
+  var prevDates=daysIndex.slice(idx-N+1,idx);
+  var today=_histMaps[selectedDate]||{};
+  Object.keys(today).forEach(function(sym){
+    var r=today[sym];
+    if(!r||isNaN(r.l))return;
+    var prevCloses=prevDates.map(function(d){return(_histMaps[d]||{})[sym]?.l;}).filter(function(v){return v!==undefined&&!isNaN(v);});
+    if(prevCloses.length<N-1)return;
+    if(r.l>Math.max.apply(null,prevCloses))hi.add(sym);
+    if(r.l<Math.min.apply(null,prevCloses))lo.add(sym);
+  });
+  return{hi:hi,lo:lo};
+}
+
+function computeCandleSets(){
+  var ham=new Set();var star=new Set();
+  (allRecords||[]).forEach(function(r){
+    if(isNaN(r.o)||isNaN(r.dh)||isNaN(r.dl)||!r.p)return;
+    var body=Math.abs(r.l-r.o)/r.p*100;
+    var ls=(Math.min(r.o,r.l)-r.dl)/r.p*100;
+    var us=(r.dh-Math.max(r.o,r.l))/r.p*100;
+    if(ls>=S.shadow&&body<=S.body&&ls>=2*Math.max(body,0.01))ham.add(r.s);
+    if(us>=S.shadow&&body<=S.body&&us>=2*Math.max(body,0.01))star.add(r.s);
+  });
+  return{ham:ham,star:star};
+}
+
+function computeDelivSets(){
+  var dm=delivByDate[selectedDate]||{};
+  var hi=new Set();var lo=new Set();var dd3=new Set();
+  Object.entries(dm).forEach(function(e){
+    var sym=e[0];var dp=e[1];
+    if(dp>=S.delHigh)hi.add(sym);
+    if(dp<S.delLow)lo.add(sym);
+  });
+  // DD3 — high delivery 3+ consecutive days
+  var idx=daysIndex.indexOf(selectedDate);
+  if(idx>=2){
+    var prev3=daysIndex.slice(Math.max(0,idx-2),idx+1);
+    Object.keys(dm).forEach(function(sym){
+      var streak=true;
+      for(var d of prev3){
+        var dp2=(_delivHistData[d]||{})[sym];
+        if(dp2===undefined||dp2<S.delHigh){streak=false;break;}
+      }
+      if(streak)dd3.add(sym);
+    });
+  }
+  return{hi:hi,lo:lo,dd3:dd3};
+}
+
+async function computeAllBadges(){
+  await loadRecentHistory();
+  await loadDelivHistory();
+  _consecMap=computeConsecDays();
+  var wk=computeWeeklyTrend();_wkUpSet=wk.up;_wkDnSet=wk.dn;
+  var nr=computeNRSets();_nr7Set=nr.nr7;_nr4Set=nr.nr4;
+  var nd=computeNDaySets();_nhSet=nd.hi;_nlSet=nd.lo;
+  var cp=computeCandleSets();_hammerSet=cp.ham;_starSet=cp.star;
+  var dv=computeDelivSets();_delHiSet=dv.hi;_delLoSet=dv.lo;_dd3Set=dv.dd3;
+}
+
+// Expand symBadges to show ALL badges
+function symBadges(sym){
+  var b='';
+  function badge(bg,co,bd,t){return'<span style="font-size:9px;background:'+bg+';color:'+co+';border:1px solid '+bd+';padding:1px 5px;border-radius:3px;margin-left:2px;font-family:JetBrains Mono,monospace;">'+t+'</span>';}
+  // Consecutive days
+  var c=_consecMap[sym];
+  if(c&&c.up>=2)b+=badge('rgba(0,230,118,.12)','#00e676','rgba(0,230,118,.25)','\u2191'+c.up);
+  if(c&&c.dn>=2)b+=badge('rgba(255,82,82,.12)','#ff5252','rgba(255,82,82,.25)','\u2193'+c.dn);
+  // Weekly trend
+  if(_wkUpSet.has(sym))b+=badge('rgba(105,240,174,.12)','#69f0ae','rgba(105,240,174,.28)','W\u2191');
+  if(_wkDnSet.has(sym))b+=badge('rgba(255,110,110,.12)','#ff6e6e','rgba(255,110,110,.28)','W\u2193');
+  // NR7/NR4
+  if(_nr7Set.has(sym))b+=badge('rgba(171,71,188,.15)','#ce93d8','rgba(171,71,188,.3)','NR7');
+  else if(_nr4Set.has(sym))b+=badge('rgba(41,98,255,.15)','#82b1ff','rgba(41,98,255,.3)','NR4');
+  // N-Day High/Low
+  if(_nhSet.has(sym))b+=badge('rgba(255,213,79,.15)','#ffd54f','rgba(255,213,79,.3)','NH');
+  if(_nlSet.has(sym))b+=badge('rgba(255,145,0,.15)','#ff9100','rgba(255,145,0,.3)','NL');
+  // Candle patterns
+  if(_hammerSet.has(sym))b+=badge('rgba(0,188,212,.15)','#80cbc4','rgba(0,188,212,.3)','\uD83D\uDD28HAM');
+  if(_starSet.has(sym))b+=badge('rgba(255,193,7,.15)','#ffe082','rgba(255,193,7,.3)','\u2B50STAR');
+  // Delivery
+  if(_delHiSet.has(sym))b+=badge('rgba(0,230,118,.12)','#00e676','rgba(0,230,118,.28)','DEL\u2191');
+  else if(_delLoSet.has(sym))b+=badge('rgba(255,112,67,.12)','#ff7043','rgba(255,112,67,.28)','SPC');
+  if(_dd3Set.has(sym))b+=badge('rgba(255,214,0,.15)','#ffd600','rgba(255,214,0,.3)','DD3+');
+  return b;
+}
+
+// ── DELETE FILE ENTRY ────────────────────────────────────────────────────────
+var _pendingDel=null;var _pendingDelTimer=null;
+
+function deleteDay(d,btn){
+  if(_pendingDel===d){
+    // 2nd click — confirmed
+    clearTimeout(_pendingDelTimer);
+    _pendingDel=null;
+    if(btn){btn.textContent='🗑';btn.style.cssText='';}
+    doDeletion(d);
+  }else{
+    // 1st click — ask for confirmation
+    if(_pendingDel&&_pendingDelTimer){
+      clearTimeout(_pendingDelTimer);
+      _pendingDel=null;
+      renderTracker(); // reset previous pending
+    }
+    _pendingDel=d;
+    if(btn){
+      btn.textContent='✓ Sure?';
+      btn.style.background='rgba(255,71,87,.25)';
+      btn.style.color='#ff4757';
+      btn.style.border='1px solid #ff4757';
+      btn.style.fontWeight='700';
+      btn.style.fontSize='11px';
+      btn.style.padding='4px 8px';
+    }
+    _pendingDelTimer=setTimeout(function(){
+      _pendingDel=null;
+      if(btn){btn.textContent='🗑';btn.style.cssText='';}
+    },3000);
+  }
+}
+
+var _pendingBhav=null;var _pendingBhavTimer=null;
+
+function deleteBhav(d,btn){
+  if(_pendingBhav===d){
+    clearTimeout(_pendingBhavTimer);
+    _pendingBhav=null;
+    if(btn){btn.textContent='🗑';btn.style.cssText='';}
+    doBhavDeletion(d);
+  }else{
+    if(_pendingBhav&&_pendingBhavTimer){clearTimeout(_pendingBhavTimer);_pendingBhav=null;}
+    _pendingBhav=d;
+    if(btn){
+      btn.textContent='✓ Sure?';
+      btn.style.background='rgba(255,71,87,.25)';
+      btn.style.color='#ff4757';
+      btn.style.border='1px solid #ff4757';
+      btn.style.fontWeight='700';
+      btn.style.fontSize='11px';
+      btn.style.padding='4px 8px';
+    }
+    _pendingBhavTimer=setTimeout(function(){
+      _pendingBhav=null;
+      if(btn){btn.textContent='🗑';btn.style.cssText='';}
+    },3000);
+  }
+}
+
+async function doBhavDeletion(d){
+  try{await _store.delete('kx_del:'+d);}catch(e){}
+  delete _delivHistData[d];
+  if(delivByDate[d])delete delivByDate[d];
+  await renderTracker();
+  toast('Bhavdata deleted for '+d);
+}
+
+async function doDeletion(d){
+  try{await _store.delete('kx_day:'+d);}catch(e){}
+  try{await _store.delete('kx_del:'+d);}catch(e){}
+  delete dataByDate[d];delete _histMaps[d];delete _delivHistData[d];
+  daysIndex=daysIndex.filter(function(x){return x!==d;});
+  try{await _store.set(DAYS_KEY,JSON.stringify(daysIndex));}catch(e){}
+  if(selectedDate===d)selectedDate=daysIndex.length?daysIndex[daysIndex.length-1]:null;
+  allRecords=selectedDate?(dataByDate[selectedDate]||[]):[];
+  await refresh();
+  if(trackerOpen)await renderTracker();
+  toast('Deleted '+d);
+}
+
+
+// ── SCREEN FILTERS ──────────────────────────────────────────────────────────
+var activeChips={};
+
+function toggleChip(btn,key){
+  if(activeChips[key]){delete activeChips[key];btn.classList.remove('on');}
+  else{activeChips[key]=true;btn.classList.add('on');}
+  applyScreenFilters();
+}
+
+function clearScreenFilters(){
+  activeChips={};
+  document.querySelectorAll('.filter-chip').forEach(function(b){b.classList.remove('on');});
+  var sb=document.getElementById('fSortBy');if(sb)sb.value='';
+  var mc=document.getElementById('fMinChg');if(mc)mc.value='';
+  var mr=document.getElementById('fMinRS');if(mr)mr.value='';
+  var sq=document.getElementById('spSearch');if(sq)sq.value='';
+  applyScreenFilters();
+}
+
+function applyScreenFilters(){
+  var def=SCREENS[currentScreen];if(!def)return;
+  var rows=[...spCurrentRows];
+
+  // Symbol search
+  var q=(document.getElementById('spSearch')||{}).value||'';
+  q=q.toLowerCase().trim();
+  if(q)rows=rows.filter(function(r){return r.s&&r.s.toLowerCase().includes(q);});
+
+  // Quick filter chips
+  if(activeChips.rs)rows=rows.filter(function(r){return!isNaN(r.rs)&&r.rs>0;});
+  if(activeChips.del)rows=rows.filter(function(r){return _delHiSet.has(r.s);});
+  if(activeChips.nr7)rows=rows.filter(function(r){return _nr7Set.has(r.s);});
+  if(activeChips.wku)rows=rows.filter(function(r){return _wkUpSet.has(r.s);});
+
+  // Min % Chg
+  var mc=parseFloat((document.getElementById('fMinChg')||{}).value);
+  if(!isNaN(mc))rows=rows.filter(function(r){return Math.abs(r.c||0)>=mc;});
+
+  // Min RS
+  var mr=parseFloat((document.getElementById('fMinRS')||{}).value);
+  if(!isNaN(mr))rows=rows.filter(function(r){return!isNaN(r.rs)&&r.rs>=mr;});
+
+  // Sort
+  var sb=(document.getElementById('fSortBy')||{}).value||'';
+  if(sb){
+    var asc=sb.endsWith('_asc');
+    var key=sb.replace('_desc','').replace('_asc','');
+    var keyMap={c:'c',rs:'rs',v:'v',d30:'d30',del:function(r){return(delivByDate[selectedDate]||{})[r.s]||0;}};
+    var kfn=typeof keyMap[key]==='function'?keyMap[key]:function(r){return r[keyMap[key]]||0;};
+    rows.sort(function(a,b){return asc?kfn(a)-kfn(b):kfn(b)-kfn(a);});
+  }
+
+  // Update count
+  var pill=document.getElementById('spCount');
+  var cnt=document.getElementById('spCount');
+  var total=spCurrentRows.length;
+  var lbl=(rows.length<total)?(rows.length+'/'+total):total;
+  if(pill)pill.textContent=lbl;
+  if(cnt)cnt.textContent=lbl+' stocks';
+
+  renderSPTable(rows,def);
+}
+
+
+
+// ── SCREEN THEMES ─────────────────────────────────────────────────────────
+var SCREEN_THEMES={
+  gap:'theme-blue',big:'theme-red',mid:'theme-orange',side:'theme-purple',
+  candle:'theme-cyan',grev:'theme-teal',hvol:'theme-amber',tval:'theme-blue',
+  range:'theme-orange',consec:'theme-green',wku:'theme-green',wkd:'theme-red',
+  nr7:'theme-purple',nr4:'theme-blue',hammer:'theme-cyan',star:'theme-amber',
+  ndh:'theme-amber',ndl:'theme-orange','52prox':'theme-purple',
+  delhi:'theme-green',dello:'theme-red',ddstreak:'theme-amber',
+  risingdel:'theme-green',dd3plus:'theme-amber',multi:'theme-coral'
+};
+function applyScreenTheme(id){
+  var el=document.getElementById('sp-dynamic');if(!el)return;
+  ['theme-blue','theme-red','theme-orange','theme-purple','theme-cyan','theme-teal','theme-amber','theme-green','theme-coral'].forEach(function(c){el.classList.remove(c);});
+  var t=SCREEN_THEMES[id];if(t)el.classList.add(t);
+}
+function showSG(id,btn){
+  document.querySelectorAll('.sg').forEach(function(e){e.classList.remove('active');});
+  var el=document.getElementById('sg-'+id);if(el)el.classList.add('active');
+  document.querySelectorAll('.ss-item').forEach(function(b){b.classList.remove('active');});
+  if(btn)btn.classList.add('active');
+}
+var activeChips={};
+function toggleChip(btn,key){
+  if(activeChips[key]){delete activeChips[key];btn.classList.remove('on');}
+  else{activeChips[key]=true;btn.classList.add('on');}
+  applyScreenFilters();
+}
+function clearScreenFilters(){
+  activeChips={};
+  document.querySelectorAll('.filter-chip').forEach(function(b){b.classList.remove('on');});
+  ['fSortBy','fMinChg','fMinRS','fMinDel','spSearch'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
+  applyScreenFilters();
+}
+function applyScreenFilters(){
+  var def=SCREENS[currentScreen];if(!def||!spCurrentRows)return;
+  var rows=spCurrentRows.slice();
+  var q=((document.getElementById('spSearch')||{}).value||'').toLowerCase().trim();
+  if(q)rows=rows.filter(function(r){return r.s&&r.s.toLowerCase().includes(q);});
+  if(activeChips.rs)rows=rows.filter(function(r){return!isNaN(r.rs)&&r.rs>0;});
+  if(activeChips.del)rows=rows.filter(function(r){return _delHiSet.has(r.s);});
+  if(activeChips.nr7)rows=rows.filter(function(r){return _nr7Set.has(r.s);});
+  if(activeChips.nr4)rows=rows.filter(function(r){return _nr4Set.has(r.s);});
+  if(activeChips.wku)rows=rows.filter(function(r){return _wkUpSet.has(r.s);});
+  if(activeChips.wkd)rows=rows.filter(function(r){return _wkDnSet.has(r.s);});
+  if(activeChips.ham)rows=rows.filter(function(r){return _hammerSet.has(r.s);});
+  if(activeChips.star)rows=rows.filter(function(r){return _starSet.has(r.s);});
+  var mc=parseFloat((document.getElementById('fMinChg')||{}).value);
+  if(!isNaN(mc))rows=rows.filter(function(r){return Math.abs(r.c||0)>=mc;});
+  var mr=parseFloat((document.getElementById('fMinRS')||{}).value);
+  if(!isNaN(mr))rows=rows.filter(function(r){return!isNaN(r.rs)&&r.rs>=mr;});
+  var md=parseFloat((document.getElementById('fMinDel')||{}).value);
+  if(!isNaN(md))rows=rows.filter(function(r){var dp=(delivByDate[selectedDate]||{})[r.s];return dp!==undefined&&dp>=md;});
+  // Column header sort takes priority over dropdown
+  if(spSortCol&&COL_SORT[spSortCol]){
+    var sfn=COL_SORT[spSortCol];
+    rows.sort(function(a,b){
+      var va=sfn(a),vb=sfn(b);
+      if(typeof va==='string')return spSortDir==='asc'?va.localeCompare(vb):vb.localeCompare(va);
+      return spSortDir==='asc'?va-vb:vb-va;
+    });
+  }else{
+    var sb=((document.getElementById('fSortBy')||{}).value||'');
+    if(sb){
+      var asc=sb.endsWith('_asc');
+      var keyMap={c:function(r){return r.c||0;},rs:function(r){return r.rs||0;},v:function(r){return r.v||0;},d30:function(r){return r.d30||0;},del:function(r){return(delivByDate[selectedDate]||{})[r.s]||0;}};
+      var key=sb.replace(/_desc|_asc/g,'');
+      var kfn=keyMap[key]||function(){return 0;};
+      rows.sort(function(a,b){return asc?kfn(a)-kfn(b):kfn(b)-kfn(a);});
+    }
+  }
+  // Refresh header arrows
+  var headRow=document.getElementById('spHead');
+  if(headRow&&SCREENS[currentScreen]){
+    var def2=SCREENS[currentScreen];
+    headRow.innerHTML=def2.cols.map(function(col){
+      var isAct=spSortCol===col;
+      var arr=isAct?(spSortDir==='desc'?'▼':'▲'):'⇅';
+      var sortable=COL_SORT[col]?'onclick="headerSort(\''+col+'\')"':'';
+      return'<th class="'+(isAct?'th-active':'')+'" '+sortable+'>'+col+'<span class="sort-arrow">'+arr+'</span></th>';
+    }).join('');
+  }
+  var lbl=rows.length<spCurrentRows.length?(rows.length+'/'+spCurrentRows.length):spCurrentRows.length;
+  var pill=document.getElementById('spCount');if(pill)pill.textContent=lbl+' stocks';
+  renderSPTable(rows,def);
+}
+function filterSP(){applyScreenFilters();}
+
+
+// ── COLUMN HEADER SORT ────────────────────────────────────────────────────
+var spSortCol='';
+var spSortDir='desc';
+
+var COL_SORT={
+  'Symbol':function(r){return r.s||'';},
+  'LTP':function(r){return r.l||0;},
+  '% Chg':function(r){return r.c||0;},
+  'RS':function(r){return r.rs||0;},
+  'Volume':function(r){return r.v||0;},
+  'Del %':function(r){return(delivByDate[selectedDate]||{})[r.s]||0;},
+  'Del % Today':function(r){return(delivByDate[selectedDate]||{})[r.s]||0;},
+  '30D %':function(r){return r.d30||0;},
+  '365D %':function(r){return r.d365||0;},
+  'Gap %':function(r){return r.gap||0;},
+  'Shadow %':function(r){return r.ls||r.us||r.shadowPct||0;},
+  'Range %':function(r){return r.rng||0;},
+  'Close Pos':function(r){return r.cpos||0;},
+  'Recovery %':function(r){return r.dm||0;},
+  'Dist 52H%':function(r){return r.distH||0;},
+  'Dist 52L%':function(r){return r.distL||0;},
+  '₹ Cr':function(r){return r.cr||0;},
+  'Vol/Cr':function(r){return r.cr||0;},
+};
+
+function headerSort(col){
+  if(!COL_SORT[col])return;
+  if(spSortCol===col){spSortDir=spSortDir==='desc'?'asc':'desc';}
+  else{spSortCol=col;spSortDir='desc';}
+  // Clear the dropdown so column sort takes priority
+  var sb=document.getElementById('fSortBy');if(sb)sb.value='';
+  applyScreenFilters();
+}
+
+
+// ── THEME TOGGLE ──────────────────────────────────────────────────────────
+var isLight=false;
+function toggleTheme(){
+  isLight=!isLight;
+  document.body.classList.toggle('light',isLight);
+  document.getElementById('themeBtn').textContent=isLight?'🌙':'☀️';
+  try{_store.set('kx_theme',isLight?'light':'dark');}catch(e){}
+}
+async function loadTheme(){
+  try{var r=await _store.get('kx_theme');if(r&&r.value==='light'){isLight=true;document.body.classList.add('light');document.getElementById('themeBtn').textContent='🌙';}}catch(e){}
+}
+
+
+
+// ── MINI CANDLESTICK CHARTS ───────────────────────────────────────────────
+var showCandles=false;
+
+function toggleCandles(){
+  showCandles=!showCandles;
+  var btn=document.getElementById('candleToggle');
+  if(btn)btn.classList.toggle('active',showCandles);
+  applyScreenFilters();
+}
+
+function miniCandleSVG(sym){
+  // SPAN-based candles — valid HTML inside td (span can nest in div in td)
+  var idx=daysIndex.indexOf(selectedDate);
+  if(idx<0)return '<span style="color:#94a3b8;font-size:9px;">—</span>';
+  var dates=daysIndex.slice(Math.max(0,idx-4),idx+1);
+  var data=[];
+  dates.forEach(function(d){
+    var r=(_histMaps[d]||{})[sym];
+    if(!r||isNaN(r.l))return;
+    var o=isNaN(r.o)?r.l:r.o;
+    var hi=isNaN(r.dh)?Math.max(r.l,o):Math.max(r.dh,r.l,o);
+    var lo=isNaN(r.dl)?Math.min(r.l,o):Math.min(r.dl,r.l,o);
+    data.push({o:o,h:hi,l:lo,c:r.l});
+  });
+  var hmLen=Object.keys(_histMaps).length;
+  if(!data.length)return '<span style="color:orange;font-size:9px;">hm:'+hmLen+'/'+daysIndex.length+'</span>';
+  var maxP=Math.max.apply(null,data.map(function(d){return d.h;}));
+  var minP=Math.min.apply(null,data.map(function(d){return d.l;}));
+  var rng=maxP-minP||maxP*0.01||1;
+  var totalH=40;
+  function pct(p){return Math.max(0,Math.min(1,(p-minP)/rng));}
+  var candles=data.map(function(d){
+    var isG=d.c>=d.o;
+    var col=isG?'#22c55e':'#ef4444';
+    var bodyTopPct=pct(Math.max(d.o,d.c));
+    var bodyBotPct=pct(Math.min(d.o,d.c));
+    var upperWickH=Math.max(0,Math.round((1-pct(d.h))*totalH - (1-bodyTopPct)*totalH));
+    var bodyH=Math.max(2,Math.round((bodyTopPct-bodyBotPct)*totalH));
+    var lowerWickH=Math.max(0,Math.round(pct(d.l)*totalH));
+    // Fix: upper wick from top, then body, then lower wick
+    var hiPx=Math.round((1-pct(d.h))*totalH);
+    var bodyTopPx=Math.round((1-bodyTopPct)*totalH);
+    var bodyBotPx=Math.round((1-bodyBotPct)*totalH);
+    var loPx=Math.round((1-pct(d.l))*totalH);
+    var uwH=Math.max(0,bodyTopPx-hiPx);
+    var bH=Math.max(2,bodyBotPx-bodyTopPx);
+    var lwH=Math.max(0,loPx-bodyBotPx);
+    return '<span style="display:inline-flex;flex-direction:column;align-items:center;width:10px;height:'+totalH+'px;justify-content:flex-start;">'
+      +(uwH>0?'<span style="display:block;width:1.5px;height:'+uwH+'px;background:'+col+';"></span>':'')
+      +'<span style="display:block;width:8px;height:'+bH+'px;background:'+col+';border-radius:1px;"></span>'
+      +(lwH>0?'<span style="display:block;width:1.5px;height:'+lwH+'px;background:'+col+';"></span>':'')
+      +'</span>';
+  }).join('');
+  return '<div style="display:inline-flex;gap:3px;align-items:stretch;height:'+totalH+'px;">'+candles+'</div>';
+}
+
+function sparklineSVG(sym){
+  var idx=daysIndex.indexOf(selectedDate);
+  if(idx<0)return '';
+  var dates=daysIndex.slice(Math.max(0,idx-4),idx+1);
+  var closes=[];
+  dates.forEach(function(d){var r=(_histMaps[d]||{})[sym];if(r&&!isNaN(r.l))closes.push(r.l);});
+  if(closes.length<2)return '';
+  var mn=Math.min.apply(null,closes),mx=Math.max.apply(null,closes);
+  var rng=mx-mn||mn*0.005||1;
+  var isUp=closes[closes.length-1]>=closes[0];
+  var col=isUp?'#22c55e':'#ef4444';
+  var pct=((closes[closes.length-1]-closes[0])/closes[0]*100);
+  var sign=pct>=0?'+':'';
+  var bars=closes.map(function(c,i){
+    var h=Math.max(3,Math.round(3+((c-mn)/rng)*22));
+    var bc=i>0?(c>=closes[i-1]?'#22c55e':'#ef4444'):'#94a3b8';
+    return '<span style="display:inline-block;width:8px;height:'+h+'px;background:'+bc+';border-radius:1px 1px 0 0;vertical-align:bottom;flex-shrink:0;"></span>';
+  }).join('');
+  return '<div style="display:flex;flex-direction:column;align-items:center;gap:3px;">'
+    +'<div style="display:inline-flex;gap:2px;align-items:flex-end;height:26px;">'+bars+'</div>'
+    +'<span style="font-size:9px;font-weight:700;color:'+col+';font-family:JetBrains Mono,monospace;">'+(isUp?'▲':'▼')+' '+sign+pct.toFixed(1)+'%</span>'
+    +'</div>';
+}
+
+// ── HEATMAP FILTER (Long/Short Build Up) ──────────────────────────────────
+var hmFilter='all';
+
+function setHmFilter(f,btn){
+  hmFilter=f;
+  document.querySelectorAll('#hm-all,#hm-long,#hm-short').forEach(function(b){b.classList.remove('active');});
+  if(btn)btn.classList.add('active');
+  var lbl=document.getElementById('hmFilterLabel');
+  if(lbl){
+    if(f==='long')lbl.textContent='▲ Long Build Up — highest % change first';
+    else if(f==='short')lbl.textContent='▼ Short Build Up — most negative % first';
+    else lbl.textContent='Sorted by traded value (size = ₹Cr)';
+  }
+  renderHeatmap(spCurrentRows);
+}
+
+// ── VIEW TOGGLE (Table / Heatmap) ─────────────────────────────────────────
+var currentView='table';
+
+function setView(v){
+  currentView=v;
+  document.getElementById('view-table').style.display=v==='table'?'block':'none';
+  document.getElementById('view-heatmap').style.display=v==='heatmap'?'block':'none';
+  var tb=document.getElementById('vt-table');
+  var hb=document.getElementById('vt-heatmap');
+  if(tb)tb.classList.toggle('active',v==='table');
+  if(hb)hb.classList.toggle('active',v==='heatmap');
+  if(v==='heatmap') renderHeatmap(spCurrentRows);
+}
+
+// ── HEATMAP RENDERER ──────────────────────────────────────────────────────
+function hmColor(chg){
+  if(isNaN(chg)||chg===null) return '#64748b';
+  if(chg>=5)  return '#1b5e20';
+  if(chg>=3)  return '#2e7d32';
+  if(chg>=1)  return '#43a047';
+  if(chg>=0)  return '#81c784';
+  if(chg>=-1) return '#ef9a9a';
+  if(chg>=-3) return '#e53935';
+  return '#b71c1c';
+}
+
+function hmTextColor(chg){
+  if(isNaN(chg)) return '#fff';
+  return Math.abs(chg)<1?'rgba(0,0,0,.85)':'#fff';
+}
+
+function renderHeatmap(rows){
+  var grid=document.getElementById('hmGrid');
+  if(!grid)return;
+  if(!rows||!rows.length){grid.innerHTML='<div style="padding:40px;color:var(--muted);text-align:center;">No stocks to display</div>';return;}
+
+  // Apply Long/Short Build Up filter
+  var filtered=rows.slice();
+  if(hmFilter==='long'){
+    filtered=filtered.filter(function(r){return(r.c||0)>0;});
+    filtered.sort(function(a,b){return(b.c||0)-(a.c||0);});
+  }else if(hmFilter==='short'){
+    filtered=filtered.filter(function(r){return(r.c||0)<0;});
+    filtered.sort(function(a,b){return(a.c||0)-(b.c||0);}); // most negative first
+  }else{
+    filtered.sort(function(a,b){return(b.cr||b.v/1e6||0)-(a.cr||a.v/1e6||0);});
+  }
+  var sorted=filtered;
+  var maxVal=Math.max.apply(null,sorted.map(function(r){return r.cr||r.v/1e6||1;}));
+
+  var parts=[];
+  sorted.forEach(function(r){
+    var chg=isNaN(r.c)?0:(r.c||0);
+    var val=r.cr||r.v/1e6||1;
+    var size=Math.max(0.3,Math.min(1,val/maxVal));
+    var w=Math.round(60+size*100);
+    var h=Math.round(52+size*60);
+    var bg=hmColor(chg);
+    var tc=hmTextColor(chg);
+    var sign=chg>0?'+':'';
+    var sym=r.s.replace(/'/g,'');
+    var tile='<div class="hm-tile"';
+    tile+=' style="width:'+w+'px;height:'+h+'px;background:'+bg+';"';
+    tile+=' data-sym="'+sym+'" data-ltp="'+r.l+'" data-chg="'+chg+'"';
+    tile+='>';
+    tile+='<div class="hm-sym" style="color:'+tc+'">'+r.s+'</div>';
+    tile+='<div class="hm-chg" style="color:'+tc+'">'+sign+chg.toFixed(2)+'%</div>';
+    tile+='</div>';
+    parts.push(tile);
+  });
+  grid.innerHTML=parts.join('');
+  // Attach events after render
+  grid.querySelectorAll('.hm-tile').forEach(function(tile){
+    tile.addEventListener('mouseenter',function(e){
+      var s=tile.dataset.sym,l=parseFloat(tile.dataset.ltp),c=parseFloat(tile.dataset.chg);
+      hmShow(e,s,l,c);
+    });
+    tile.addEventListener('mouseleave',hmHide);
+    tile.addEventListener('click',function(){filterBySymbol(tile.dataset.sym);});
+  });
+}
+
+function hmShow(e,sym,ltp,chg){
+  var tt=document.getElementById('hmTooltip');if(!tt)return;
+  var sign=chg>0?'+':'';
+  var del=(delivByDate[selectedDate]||{})[sym];
+  var badges=symBadges(sym);
+  tt.innerHTML='<div class="sym">'+sym+badges+'</div>'+
+    '<div style="margin:4px 0;">'+
+    '<span style="color:var(--muted);">LTP </span><strong>'+ltp.toFixed(2)+'</strong>'+
+    '<span style="color:'+( chg>=0?'var(--green)':' var(--red)')+';font-weight:700;margin-left:8px;">'+sign+chg.toFixed(2)+'%</span></div>'+
+    (del!==undefined?'<div style="font-size:11px;color:var(--muted);">Del% <strong style="color:var(--green);">'+del.toFixed(1)+'%</strong></div>':'')+
+    '<div style="font-size:10px;color:var(--muted);margin-top:4px;">Click to filter</div>';
+  tt.style.display='block';
+  tt.style.left=(e.clientX+14)+'px';
+  tt.style.top=(e.clientY-10)+'px';
+}
+function hmHide(){var tt=document.getElementById('hmTooltip');if(tt)tt.style.display='none';}
+
+function filterBySymbol(sym){
+  setView('table');
+  var sq=document.getElementById('spSearch');
+  if(sq){sq.value=sym;applyScreenFilters();}
+}
+
+
+
+// ── DASHBOARD INDEX TICKER ────────────────────────────────────────────────
+function renderDashTicker(){
+  var ticker=document.getElementById('idxTickerInner');
+  if(!ticker)return;
+  var sectors=['NIFTY 50','NIFTY BANK','NIFTY IT','NIFTY FMCG','NIFTY PHARMA','NIFTY AUTO','NIFTY METAL','NIFTY REALTY','NIFTY ENERGY','NIFTY PSU BANK','NIFTY MEDIA','NIFTY INFRA','NIFTY MIDCAP'];
+  var items=[];
+  sectors.forEach(function(name){
+    var sec=SECTORS[name];if(!sec)return;
+    var data=computeIdxChg(sec.stocks);if(!data)return;
+    var isUp=data.avg>=0;
+    var col=isUp?'var(--green)':'var(--red)';
+    var sign=data.avg>0?'+':'';
+    var ff='JetBrains Mono,monospace';
+    items.push('<span style="display:inline-flex;align-items:center;gap:8px;font-family:'+ff+';font-size:12px;">'
+      +'<span style="font-weight:700;color:var(--text);">'+name+'</span>'
+      +'<span style="font-weight:800;color:'+col+';">'+sign+data.avg.toFixed(2)+'%</span>'
+      +'<span style="color:var(--muted);font-size:10px;">'+(isUp?'▲':'▼')+data.adv+'/'+(data.adv+data.dec)+'</span>'
+      +'</span>');
+  });
+  if(!items.length){document.getElementById('dashIdxTicker').style.display='none';return;}
+  document.getElementById('dashIdxTicker').style.display='flex';
+  // Double items for seamless loop
+  var html2=items.concat(items).join('<span style="color:var(--border);margin:0 4px;">│</span>');
+  ticker.innerHTML=html2;
+}
+
+// ── SECTOR INDICES ──────────────────────────────────────────────────────────
+var SECTORS={
+  'NIFTY BANK':    {icon:'🏦',stocks:['HDFCBANK','ICICIBANK','KOTAKBANK','SBIN','AXISBANK','BANKBARODA','INDUSINDBK','IDFCFIRSTB','AUBANK','FEDERALBNK','PNB']},
+  'NIFTY IT':      {icon:'💻',stocks:['TCS','INFY','WIPRO','HCLTECH','TECHM','MPHASIS','PERSISTENT','COFORGE','KPITTECH','LTIM']},
+  'NIFTY FMCG':    {icon:'🛒',stocks:['HINDUNILVR','ITC','NESTLEIND','BRITANNIA','DABUR','MARICO','GODREJCP','EMAMILTD','COLPAL','TATACONSUM']},
+  'NIFTY PHARMA':  {icon:'💊',stocks:['SUNPHARMA','DIVISLAB','CIPLA','DRREDDY','TORNTPHARM','LUPIN','AUROPHARMA','ALKEM','ZYDUSLIFE','IPCALAB']},
+  'NIFTY AUTO':    {icon:'🚗',stocks:['MARUTI','M&M','BAJAJ-AUTO','HEROMOTOCO','EICHERMOT','ASHOKLEY','TVSMOTOR','SONACOMS','BHARATFORG','CUMMINSIND']},
+  'NIFTY METAL':   {icon:'⚙️',stocks:['TATASTEEL','JSWSTEEL','HINDALCO','SAIL','NMDC','NATIONALUM','VEDL','JINDALSAW','NMDC']},
+  'NIFTY REALTY':  {icon:'🏗️',stocks:['DLF','LODHA','GODREJPROP','OBEROIRLTY','PRESTIGE','BRIGADE','SOBHA','NCC','AARTIIND']},
+  'NIFTY ENERGY':  {icon:'⚡',stocks:['RELIANCE','ONGC','NTPC','POWERGRID','TATAPOWER','BPCL','IOC','COALINDIA','GAIL','ADANIGREEN']},
+  'NIFTY PSU BANK':{icon:'🏛️',stocks:['SBIN','BANKBARODA','PNB','UNIONBANK','BANKINDIA','MAHABANK','IOB','UCOFIN']},
+  'NIFTY MEDIA':   {icon:'📺',stocks:['SUNTV','ZEEL','PVRINOX','SAREGAMA','TVTODAY','JAGRAN']},
+  'NIFTY INFRA':   {icon:'🔧',stocks:['LT','ADANIPORTS','BHEL','SIEMENS','ABB','CUMMINSIND','GRINDWELL','KEC','KALPATPOWR']},
+  'NIFTY MIDCAP':  {icon:'📊',stocks:['TRENT','MOTHERSON','MAXHEALTH','POLICYBZR','NAUKRI','PHOENIXLTD','CROMPTON','APLAPOLLO','SOLARINDS','KAYNES']},
+  'NIFTY 50':      {icon:'🔵',stocks:['RELIANCE','HDFCBANK','ICICIBANK','INFY','TCS','BHARTIARTL','SBIN','AXISBANK','KOTAKBANK','LT','HINDUNILVR','ITC','M&M','BAJAJ-AUTO','NTPC','POWERGRID','SUNPHARMA','TITAN','ADANIPORTS','ULTRACEMCO','WIPRO','HCLTECH','NESTLEIND','ASIANPAINT','BAJAJFINSV','MARUTI','COALINDIA','ONGC','DIVISLAB','GRASIM','JSWSTEEL','TATASTEEL','APOLLOHOSP','CIPLA','EICHERMOT','BPCL','HEROMOTOCO','TECHM','TATACONSUM','DRREDDY','HINDALCO','INDUSINDBK','SHRIRAMFIN','BRITANNIA','TRENT','ETERNAL','SBILIFE','HDFCLIFE','BEL']},
+  'NIFTY 100':     {icon:'🟢',stocks:['RELIANCE','HDFCBANK','ICICIBANK','INFY','TCS','BHARTIARTL','SBIN','AXISBANK','KOTAKBANK','LT','HINDUNILVR','ITC','M&M','BAJAJ-AUTO','NTPC','POWERGRID','SUNPHARMA','TITAN','ADANIPORTS','ULTRACEMCO','WIPRO','HCLTECH','NESTLEIND','ASIANPAINT','BAJAJFINSV','MARUTI','COALINDIA','ONGC','DIVISLAB','GRASIM','JSWSTEEL','TATASTEEL','APOLLOHOSP','CIPLA','EICHERMOT','BPCL','HEROMOTOCO','TECHM','TATACONSUM','DRREDDY','HINDALCO','INDUSINDBK','SHRIRAMFIN','BRITANNIA','TRENT','ETERNAL','SBILIFE','HDFCLIFE','BEL','BANKBARODA','LODHA','PIDILITIND','GODREJCP','AMBUJACEM','DLF','SIEMENS','HAVELLS','ADANIGREEN','MUTHOOTFIN','TATAPOWER','ABB','BIOCON','MARICO','DABUR','NAUKRI','LUPIN','PGHH','COLPAL','IPCALAB','AUBANK','FEDERALBNK','OBEROIRLTY','CUMMINSIND','PHOENIXLTD','TORNTPHARM','ALKEM','MPHASIS','COFORGE','PERSISTENT','KPITTECH','TVSMOTOR','ASHOKLEY','SONACOMS','GODREJPROP','PRESTIGE','BAJAJHLDNG','MAXHEALTH','POLICYBZR']},
+  'NIFTY 200':     {icon:'🟡',stocks:['RELIANCE','HDFCBANK','ICICIBANK','INFY','TCS','BHARTIARTL','SBIN','AXISBANK','KOTAKBANK','LT','HINDUNILVR','ITC','M&M','BAJAJ-AUTO','NTPC','POWERGRID','SUNPHARMA','TITAN','ADANIPORTS','ULTRACEMCO','WIPRO','HCLTECH','NESTLEIND','ASIANPAINT','BAJAJFINSV','MARUTI','COALINDIA','ONGC','DIVISLAB','GRASIM','JSWSTEEL','TATASTEEL','APOLLOHOSP','CIPLA','EICHERMOT','BPCL','HEROMOTOCO','TECHM','TATACONSUM','DRREDDY','HINDALCO','INDUSINDBK','SHRIRAMFIN','BRITANNIA','TRENT','ETERNAL','SBILIFE','HDFCLIFE','BEL','BANKBARODA','LODHA','PIDILITIND','GODREJCP','AMBUJACEM','DLF','SIEMENS','HAVELLS','ADANIGREEN','MUTHOOTFIN','TATAPOWER','ABB','BIOCON','MARICO','DABUR','NAUKRI','LUPIN','PGHH','COLPAL','IPCALAB','AUBANK','FEDERALBNK','OBEROIRLTY','CUMMINSIND','PHOENIXLTD','TORNTPHARM','ALKEM','MPHASIS','COFORGE','PERSISTENT','KPITTECH','TVSMOTOR','ASHOKLEY','SONACOMS','GODREJPROP','PRESTIGE','BAJAJHLDNG','MAXHEALTH','POLICYBZR','ZOMATO','PAYTM','NYKAA','DMART','IRFC','HAL','BDL','COCHINSHIP','MAZAGON','GRSE','RVNL','IRCTC','RAILVIKAS','HUDCO','PFC','RECLTD','NMDC','SAIL','NATIONALUM','VEDL','HINDZINC','MOIL','RATNAMANI','JINDALSAW','KALYANKJIL','TITAN','MANYAVAR','VAIBHAVGBL','SENCO','TRENT','APLAPOLLO']},
+  'NIFTY MIDCAP 100':{icon:'📈',stocks:['TRENT','MOTHERSON','MAXHEALTH','POLICYBZR','NAUKRI','PHOENIXLTD','CROMPTON','APLAPOLLO','SOLARINDS','KAYNES','MUTHOOTFIN','OBEROIRLTY','PRESTIGE','TORNTPHARM','ALKEM','MPHASIS','COFORGE','PERSISTENT','KPITTECH','ASHOKLEY','SONACOMS','GODREJPROP','BAJAJHLDNG','AUBANK','FEDERALBNK','IPCALAB','CUMMINSIND','PIDILITIND','AMBUJACEM','SIEMENS','HAVELLS','ABB','BIOCON','LUPIN','MARICO','DABUR','COLPAL','BANKBARODA','DLF','LODHA','ADANIGREEN','TATAPOWER','ZOMATO','PAYTM','IRFC','HAL','COCHINSHIP','RVNL','IRCTC','HUDCO','PFC','RECLTD']},
+};
+
+function computeIdxChg(stocks){
+  var chgs=[],rec;
+  var recs=allRecords&&allRecords.length?allRecords:(selectedDate&&dataByDate[selectedDate]?dataByDate[selectedDate]:[]);
+  stocks.forEach(function(s){
+    rec=recs.find(function(r){return r.s===s;});
+    if(rec&&!isNaN(rec.c))chgs.push({s:s,c:rec.c,l:rec.l,rs:rec.rs,cr:rec.cr,d30:rec.d30,v:rec.v});
+  });
+  if(!chgs.length)return null;
+  var avg=chgs.reduce(function(s,r){return s+r.c;},0)/chgs.length;
+  var adv=chgs.filter(function(r){return r.c>0;}).length;
+  var dec=chgs.filter(function(r){return r.c<0;}).length;
+  return{avg:parseFloat(avg.toFixed(2)),adv:adv,dec:dec,total:chgs.length,stocks:chgs.sort(function(a,b){return b.c-a.c;})};
+}
+
+function openIndexDetail(name){
+  var sec=SECTORS[name];
+  if(!sec){toast('Index not found: '+name);return;}
+  var data=computeIdxChg(sec.stocks);
+  _currentIdxName=name;
+  _currentIdxStocks=data?data.stocks:[];
+  idxDetailSort={col:'',dir:'desc'}; // reset sort on new index
+  // Show detail panel
+  var grid=document.getElementById('idxGrid');
+  var det=document.getElementById('idxDetail');
+  if(grid)grid.style.display='none';
+  if(det)det.style.display='block';
+  var sign=data&&data.avg>0?'+':'';
+  var nm=document.getElementById('idxDetailName');
+  var chgEl=document.getElementById('idxDetailChg');
+  if(nm)nm.textContent=sec.icon+' '+name;
+  if(chgEl){chgEl.textContent=data?(sign+data.avg.toFixed(2)+'%'):'—';chgEl.style.color=data&&data.avg>=0?'var(--green)':'var(--red)';}
+  // KPI strip
+  var kpi=document.getElementById('idxKpi');
+  if(kpi&&data){
+    kpi.innerHTML='<div class="adv-kpi"><div class="lbl">Total</div><div class="val">'+data.total+'</div></div>'
+      +'<div class="adv-kpi"><div class="lbl">Advances</div><div class="val" style="color:var(--green);">'+data.adv+'</div></div>'
+      +'<div class="adv-kpi"><div class="lbl">Declines</div><div class="val" style="color:var(--red);">'+data.dec+'</div></div>'
+      +'<div class="adv-kpi"><div class="lbl">Avg % Chg</div><div class="val" style="color:'+(data.avg>=0?'var(--green)':'var(--red)')+';">'+(data.avg>=0?'+':'')+data.avg.toFixed(2)+'%</div></div>';
+  }
+  renderIdxDetailTable();
+}
+
+function idxDetailHeaderSort(col){
+  if(idxDetailSort.col===col)idxDetailSort.dir=idxDetailSort.dir==='desc'?'asc':'desc';
+  else{idxDetailSort.col=col;idxDetailSort.dir='desc';}
+  renderIdxDetailTable();
+}
+
+function renderIdxDetailTable(){
+  var cols=[{k:'sym',l:'Symbol',al:'left'},{k:'ltp',l:'LTP',al:'right'},{k:'chg',l:'% CHG',al:'right'},{k:'rs',l:'RS',al:'right'},{k:'del',l:'Del %',al:'right'},{k:'d30',l:'30D %',al:'right'}];
+  // Sortable header
+  var headHTML=cols.map(function(c){
+    var isAct=idxDetailSort.col===c.k;
+    var clr=isAct?'#ff6b5b':'#e2e8f0';
+    var fw=isAct?'700':'600';
+    var arrow=isAct?(idxDetailSort.dir==='desc'?'▼':'▲'):'⇅';
+    var th='<th style="text-align:'+c.al+';cursor:pointer;color:'+clr+';font-weight:'+fw+';user-select:none;"';
+    th+=' onclick="idxDetailHeaderSort(this.getAttribute(\"data-k\"))" data-k="'+c.k+'">';
+    th+=c.l+' <span style="font-size:10px;opacity:'+(isAct?'1':'0.4')+'">'+arrow+'</span></th>';
+    return th;
+  }).join('');
+  var headEl=document.getElementById('idxDetailHead');
+  if(headEl)headEl.innerHTML=headHTML;
+  // Sort stocks
+  var stocks=_currentIdxStocks.slice();
+  if(idxDetailSort.col){
+    var asc=idxDetailSort.dir==='asc';
+    stocks.sort(function(a,b){
+      var va,vb;
+      if(idxDetailSort.col==='sym'){va=a.s;vb=b.s;return asc?va.localeCompare(vb):vb.localeCompare(va);}
+      if(idxDetailSort.col==='ltp'){va=a.l||0;vb=b.l||0;}
+      else if(idxDetailSort.col==='chg'){va=a.c||0;vb=b.c||0;}
+      else if(idxDetailSort.col==='rs'){va=a.rs||0;vb=b.rs||0;}
+      else if(idxDetailSort.col==='del'){va=(delivByDate[selectedDate]||{})[a.s]||0;vb=(delivByDate[selectedDate]||{})[b.s]||0;}
+      else if(idxDetailSort.col==='d30'){va=a.d30||0;vb=b.d30||0;}
+      else{va=0;vb=0;}
+      return asc?va-vb:vb-va;
+    });
+  }
+  if(!stocks.length){
+    document.getElementById('idxDetailBody').innerHTML='<tr class="empty-row"><td colspan="6">No data — upload MW CSV</td></tr>';
+    return;
+  }
+  var rows=stocks.map(function(r){
+    var del=(delivByDate[selectedDate]||{})[r.s];
+    var delStr=del!==undefined?del.toFixed(1)+'%':'—';
+    var delCls=del!==undefined?(del>=60?'g':del<30?'r':''):'';
+    return'<tr>'
+      +'<td style="font-weight:600;">'+r.s+symBadges(r.s)+'</td>'
+      +'<td class="num">'+fn(r.l,2)+'</td>'
+      +'<td class="num '+(r.c>=0?'g':'r')+'">'+fp(r.c)+'</td>'
+      +'<td class="num '+(r.rs>=0?'g':'r')+'">'+fp(r.rs)+'</td>'
+      +'<td class="num '+delCls+'">'+delStr+'</td>'
+      +'<td class="num '+(r.d30>=0?'g':'r')+'">'+fp(r.d30)+'</td>'
+      +'</tr>';
+  }).join('');
+  document.getElementById('idxDetailBody').innerHTML=rows;
+}
+
+
+// ── INDICES OVERVIEW FILTER ───────────────────────────────────────────────
+var _idxFilter='all';
+
+function setIdxFilter(f,btn){
+  _idxFilter=f;
+  document.querySelectorAll('#idxF-all,#idxF-long,#idxF-short').forEach(function(b){b.classList.remove('active');});
+  if(btn)btn.classList.add('active');
+  var lbl=document.getElementById('idxFilterLbl');
+  if(lbl){
+    if(f==='long')lbl.textContent='▲ Long Build Up — positive sectors, highest first';
+    else if(f==='short')lbl.textContent='▼ Short Build Up — negative sectors, most negative first';
+    else lbl.textContent='All sectors by avg % change';
+  }
+  renderIndices();
+}
+
+function renderIndices(){
+  var grid=document.getElementById('idxGrid');
+  if(!grid)return;
+  document.getElementById('idxDetail').style.display='none';
+  grid.style.display='grid';
+  // allRecords might be empty if user navigated before data loaded
+  // Load records from any available source
+  var recs=allRecords&&allRecords.length?allRecords:[];
+  if(!recs.length&&selectedDate&&dataByDate[selectedDate])recs=dataByDate[selectedDate];
+  if(!recs.length){
+    // Try loading from storage
+    grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:48px;color:var(--muted);"><div style="font-size:36px;margin-bottom:12px;">📤</div><div style="font-size:14px;margin-bottom:8px;">Upload MW CSV to see sector performance</div><div style="font-size:12px;color:var(--muted);">Go to Dashboard → Upload CSV</div></div>';
+    return;
+  }
+  allRecords=recs;
+  // Build and filter sector data
+  var allSecs=[];
+  Object.keys(SECTORS).forEach(function(name){
+    var sec=SECTORS[name];
+    var data=computeIdxChg(sec.stocks);
+    if(!data)return;
+    allSecs.push({name:name,sec:sec,data:data});
+  });
+  // Apply Long/Short Build Up filter
+  if(_idxFilter==='long'){
+    allSecs=allSecs.filter(function(s){return s.data.avg>0;});
+    allSecs.sort(function(a,b){return b.data.avg-a.data.avg;});
+  }else if(_idxFilter==='short'){
+    allSecs=allSecs.filter(function(s){return s.data.avg<0;});
+    allSecs.sort(function(a,b){return a.data.avg-b.data.avg;});
+  }
+  var cards='';
+  allSecs.forEach(function(item){
+    var name=item.name;var sec=item.sec;var data=item.data;
+    var isUp=data.avg>=0;
+    var col=isUp?'var(--green)':'var(--red)';
+    var fillCol=isUp?'#22c55e':'#ef4444';
+    var fillW=Math.min(100,Math.abs(data.avg)*10);
+    var sign=data.avg>0?'+':'';
+    var dn=name.replace(/['"/]/g,'_');cards+='<div class="idx-card" data-n="'+dn+'" onclick="openIdxDetail(this.getAttribute(\'data-n\'))" style="border-left:4px solid '+fillCol+';">'+'<div style="position:absolute;bottom:-20px;right:-20px;width:80px;height:80px;border-radius:50%;background:'+fillCol+';opacity:.06;"></div>'
+      +'<div class="idx-card .idx-glow" style="background:'+fillCol+';"></div>'
+      +'<div class="idx-name">'+sec.icon+' '+name+'</div>'
+      +'<div class="idx-chg '+(isUp?'g':'r')+'">'+sign+data.avg.toFixed(2)+'%</div>'
+      +'<div class="idx-bar"><div class="idx-bar-fill" style="width:'+fillW+'%;background:'+fillCol+';"></div></div>'
+      +'<div class="idx-adv">'
+      +'<span class="up">▲ '+data.adv+' up</span>'
+      +'<span class="dn">▼ '+data.dec+' down</span>'
+      +'<span style="margin-left:auto;font-size:11px;">'+data.total+' stocks</span>'
+      +'</div>'
+      +'</div>';
+  });
+  grid.innerHTML=cards||(allSecs.length===0&&_idxFilter!=='all'?'<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--muted);">No '+ (_idxFilter==='long'?'positive':'negative')+' sectors today</div>':'<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--muted);">No index data available</div>');
+}
+
+function openIdxDetail(name){
+  var sec=SECTORS[name];
+  if(!sec)return;
+  var data=computeIdxChg(sec.stocks);
+  if(!data)return;
+  document.getElementById('idxGrid').style.display='none';
+  var det=document.getElementById('idxDetail');
+  det.style.display='block';
+  var sign=data.avg>0?'+':'';
+  document.getElementById('idxDetailName').textContent=sec.icon+' '+name;
+  var chgEl=document.getElementById('idxDetailChg');
+  chgEl.textContent=sign+data.avg.toFixed(2)+'%';
+  chgEl.style.color=data.avg>=0?'var(--green)':'var(--red)';
+  // Render stocks table
+  var rows=data.stocks.map(function(r){
+    var del=(delivByDate[selectedDate]||{})[r.s];
+    var delStr=del!==undefined?del.toFixed(1)+'%':'—';
+    var cls=r.c>=0?'g':'r';
+    return '<tr>'
+      +'<td style="font-weight:600;">'+r.s+symBadges(r.s)+'</td>'
+      +'<td class="num">'+fn(r.l,2)+'</td>'
+      +'<td class="num '+cls+'">'+fp(r.c)+'</td>'
+      +'<td class="num '+(r.rs>=0?'g':'r')+'">'+fp(r.rs)+'</td>'
+      +'<td class="num">'+fn(r.cr,1)+'</td>'
+      +'<td class="num '+(r.d30>=0?'g':'r')+'">'+fp(r.d30)+'</td>'
+      +'</tr>';
+  }).join('');
+  document.getElementById('idxDetailBody').innerHTML=rows||'<tr class="empty-row"><td colspan="6">No data</td></tr>';
+}
+
+function goBackFromIndex(){
+  // Check if came from a direct idx: screen or from grid
+  var grid=document.getElementById('idxGrid');
+  if(grid&&grid.style.display!=='none'){closeIdxDetail();}
+  else{renderIndices();var det=document.getElementById('idxDetail');if(det)det.style.display='none';var gr=document.getElementById('idxGrid');if(gr)gr.style.display='grid';}
+}
+function closeIdxDetail(){
+  document.getElementById('idxDetail').style.display='none';
+  document.getElementById('idxGrid').style.display='grid';
+}
+
+</script>
+</body>
+</html>
