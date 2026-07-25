@@ -686,6 +686,12 @@ footer{background:var(--panel);border-top:1px solid var(--border);padding:36px 5
         <div style="font-family:'Orbitron',monospace;font-size:14px;font-weight:700;">📅 File Upload Tracker</div>
         <div style="font-size:12px;color:var(--muted);">✅ uploaded &nbsp;|&nbsp; ❌ missing &nbsp;|&nbsp; 🗑 delete day</div>
       </div>
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 18px;border-bottom:1px solid var(--border);background:var(--panel);flex-wrap:wrap;">
+        <span style="font-size:12px;color:var(--muted);white-space:nowrap;">🧹 Clear data before:</span>
+        <input type="date" id="clearBeforeInput" style="background:var(--dim);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:5px 8px;font-size:12px;font-family:'JetBrains Mono',monospace;">
+        <button id="clearBeforeBtn" onclick="clearBeforeDate(this)" style="background:none;border:1px solid rgba(255,71,87,.3);color:var(--red);cursor:pointer;font-size:12px;padding:5px 12px;border-radius:6px;transition:all .15s;">Clear Older Data</button>
+        <span id="clearBeforeMsg" style="font-size:11px;color:var(--muted);"></span>
+      </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;">
 
         <!-- MW CSV Column -->
@@ -1863,6 +1869,58 @@ async function doDeletion(d){
   allRecords=selectedDate?(dataByDate[selectedDate]||[]):[];
   await refresh();
   if(trackerOpen)await renderTracker();
+}
+
+// ── BULK CLEAR — remove all data before a cutoff date ───────────────────────
+var _pendingClearBefore=false;var _pendingClearBeforeTimer=null;
+
+function clearBeforeDate(btn){
+  var cutoff=document.getElementById('clearBeforeInput').value;
+  var msg=document.getElementById('clearBeforeMsg');
+  if(!cutoff){if(msg)msg.textContent='Pick a date first';return;}
+  var toRemove=daysIndex.filter(function(d){return d<cutoff;});
+  if(!toRemove.length){if(msg){msg.textContent='No data before that date';msg.style.color='var(--muted);';}return;}
+
+  if(_pendingClearBefore){
+    // 2nd click — confirmed, run it
+    clearTimeout(_pendingClearBeforeTimer);
+    _pendingClearBefore=false;
+    if(btn){btn.textContent='Clear Older Data';btn.style.cssText='background:none;border:1px solid rgba(255,71,87,.3);color:var(--red);cursor:pointer;font-size:12px;padding:5px 12px;border-radius:6px;transition:all .15s;';}
+    doClearBeforeDate(toRemove,msg);
+  }else{
+    // 1st click — ask for confirmation
+    _pendingClearBefore=true;
+    if(btn){
+      btn.textContent='✓ Confirm delete '+toRemove.length+' day(s)?';
+      btn.style.background='rgba(255,71,87,.25)';
+      btn.style.color='#ff4757';
+      btn.style.border='1px solid #ff4757';
+      btn.style.fontWeight='700';
+    }
+    if(msg){msg.textContent='';}
+    _pendingClearBeforeTimer=setTimeout(function(){
+      _pendingClearBefore=false;
+      if(btn){btn.textContent='Clear Older Data';btn.style.cssText='background:none;border:1px solid rgba(255,71,87,.3);color:var(--red);cursor:pointer;font-size:12px;padding:5px 12px;border-radius:6px;transition:all .15s;';}
+    },4000);
+  }
+}
+
+async function doClearBeforeDate(toRemove,msg){
+  for(var i=0;i<toRemove.length;i++){
+    var d=toRemove[i];
+    try{await _store.delete('kx_day:'+d);}catch(e){}
+    try{await _store.delete('kx_del:'+d);}catch(e){}
+    delete dataByDate[d];delete _histMaps[d];delete _delivHistData[d];delete delivByDate[d];
+  }
+  var removedSet={};toRemove.forEach(function(d){removedSet[d]=true;});
+  daysIndex=daysIndex.filter(function(x){return !removedSet[x];});
+  try{await _store.set(DAYS_KEY,JSON.stringify(daysIndex));}catch(e){}
+  if(selectedDate&&removedSet[selectedDate])selectedDate=daysIndex.length?daysIndex[daysIndex.length-1]:null;
+  allRecords=selectedDate?(dataByDate[selectedDate]||[]):[];
+  await refresh();
+  if(trackerOpen)await renderTracker();
+  if(msg){msg.style.color='var(--green)';msg.textContent='Cleared '+toRemove.length+' day(s)';}
+  toast('Cleared '+toRemove.length+' day(s) of data');
   toast('Deleted '+d);
 }
 
