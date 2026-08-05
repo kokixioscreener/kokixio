@@ -468,7 +468,7 @@ footer{background:var(--panel);border-top:1px solid var(--border);padding:36px 5
 
     <!-- F&O Stocks -->
     <div class="nav-item">
-      <button class="nav-btn" style="color:#ffa726;font-weight:600;" onclick="openScreen('idx:F&amp;O STOCKS')">🎯 F&amp;O Stocks</button>
+      <button class="nav-btn" style="color:#ffa726;font-weight:600;" onclick="openScreen('fno')">🎯 F&amp;O Stocks</button>
     </div>
 
     <!-- About Dropdown -->
@@ -1461,6 +1461,10 @@ const SCREENS={
     fn:recs=>recs.sort((a,b)=>b.c-a.c),
     cols:['Symbol','LTP','% Chg','RS','30D %','365D %'],
     row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:fp(r.rs),cls:pc(r.rs)},{v:fp(r.d30),cls:pc(r.d30)},{v:fp(r.d365),cls:pc(r.d365)}]},
+  fno:{name:'F&O Stocks',desc:'NSE Futures & Options eligible stocks',icon:'🎯',
+    fn:recs=>{const set=new Set(SECTORS['F&O STOCKS'].stocks);return recs.filter(r=>set.has(r.s)).sort((a,b)=>b.c-a.c);},
+    cols:['Symbol','LTP','% Chg','RS','Vol','30D %'],
+    row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:fp(r.rs),cls:pc(r.rs)},fv(r.v),{v:fp(r.d30),cls:pc(r.d30)}]},
 };
 
 // ── Render dynamic screen ───────────────────────────────────
