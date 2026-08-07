@@ -1563,6 +1563,7 @@ const t=document.getElementById('ticker');
 var _consecMap={};
 var _wkUpSet=new Set();
 var _wkDnSet=new Set();
+var _FNO_SET=null;
 var _histMaps={};
 var trackerOpen=false;
 
@@ -1860,6 +1861,9 @@ function symBadges(sym){
   if(_delHiSet.has(sym))b+=badge('rgba(0,230,118,.12)','#00e676','rgba(0,230,118,.28)','DEL\u2191');
   else if(_delLoSet.has(sym))b+=badge('rgba(255,112,67,.12)','#ff7043','rgba(255,112,67,.28)','SPC');
   if(_dd3Set.has(sym))b+=badge('rgba(255,214,0,.15)','#ffd600','rgba(255,214,0,.3)','DD3+');
+  // F&O eligible
+  if(!_FNO_SET)_FNO_SET=new Set(SECTORS['F&O STOCKS'].stocks);
+  if(_FNO_SET.has(sym))b+=badge('rgba(255,167,38,.15)','#ffa726','rgba(255,167,38,.35)','F&O');
   return b;
 }
 
