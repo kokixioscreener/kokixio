@@ -474,6 +474,11 @@ footer{background:var(--panel);border-top:1px solid var(--border);padding:36px 5
       <button class="nav-btn" style="color:#ffa726;font-weight:600;" onclick="openScreen('fno')">🎯 F&amp;O Stocks</button>
     </div>
 
+    <!-- Futures OI -->
+    <div class="nav-item">
+      <button class="nav-btn" style="color:#26c6da;font-weight:600;" onclick="openScreen('fno-oi')">📊 Futures OI</button>
+    </div>
+
     <!-- About Dropdown -->
     <div class="nav-item">
       <button class="nav-btn">About <span class="arrow">▾</span></button>
@@ -667,6 +672,7 @@ footer{background:var(--panel);border-top:1px solid var(--border);padding:36px 5
   <!-- Upload staging -->
   <input type="file" id="mainFile" accept=".csv" style="display:none;">
   <input type="file" id="delivFile" accept=".csv" style="display:none;">
+  <input type="file" id="foiFile" accept=".csv" style="display:none;">
   <div class="staging" id="staging">
     <span id="stagingTxt" style="font-size:13px;"></span>
     <input type="date" id="stagingDate" style="background:var(--panel2);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:6px;font-size:13px;font-family:'JetBrains Mono',monospace;">
@@ -684,6 +690,7 @@ footer{background:var(--panel);border-top:1px solid var(--border);padding:36px 5
       <select id="daySelect" style="background:var(--panel2);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:6px;font-size:13px;font-family:'JetBrains Mono',monospace;display:none;"></select>
       <button class="up-btn" onclick="toggleTracker()" id="trackerBtn">📅 File Tracker</button>
       <button class="up-btn" onclick="document.getElementById('delivFile').click()">📦 Del %</button>
+      <button class="up-btn" onclick="document.getElementById('foiFile').click()">📊 OI Data</button>
       <button class="up-btn primary" onclick="document.getElementById('mainFile').click()">↑ Upload CSV</button>
     </div>
   </div>
@@ -818,6 +825,8 @@ footer{background:var(--panel);border-top:1px solid var(--border);padding:36px 5
           <option value="v_desc">Volume ↓</option>
           <option value="d30_desc">30D % ↓</option>
           <option value="d30_asc">30D % ↑</option>
+          <option value="d365_desc">365D % ↓</option>
+          <option value="d365_asc">365D % ↑</option>
           <option value="del_desc">Del % ↓</option>
         </select>
         <div class="filter-sep"></div>
@@ -869,7 +878,21 @@ footer{background:var(--panel);border-top:1px solid var(--border);padding:36px 5
         </table></div>
       </div>
     </div>
-    <!-- Table card -->
+
+    <!-- Futures OI view -->
+    <div id="view-fnooi" style="display:none;">
+      <button class="idx-back-btn" onclick="openScreen('home')">← Back to Home</button>
+      <div style="padding:12px 5%;display:flex;align-items:center;gap:10px;flex-wrap:wrap;border-bottom:1px solid var(--border);">
+        <input type="text" id="foiSearch" placeholder="Search Symbol..." oninput="renderFoiScreen()" style="background:var(--panel2);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:6px;font-size:13px;width:170px;font-family:'JetBrains Mono',monospace;">
+        <button class="vt-btn active" id="foiF-all" onclick="setFoiFilter('all',this)">⬛ All</button>
+        <button class="vt-btn" id="foiF-L" onclick="setFoiFilter('L',this)" style="color:#22c55e;border-color:rgba(34,197,94,.4);">▲ Long</button>
+        <button class="vt-btn" id="foiF-LU" onclick="setFoiFilter('LU',this)" style="color:#26c6da;border-color:rgba(38,198,218,.4);">↓ Long Unwinding</button>
+        <button class="vt-btn" id="foiF-S" onclick="setFoiFilter('S',this)" style="color:#ef4444;border-color:rgba(239,68,68,.4);">▼ Short</button>
+        <button class="vt-btn" id="foiF-SC" onclick="setFoiFilter('SC',this)" style="color:#ffa726;border-color:rgba(255,167,38,.4);">↑ Short Covering</button>
+        <span style="margin-left:auto;font-size:11px;color:var(--muted);" id="foiMeta"></span>
+      </div>
+      <div id="foiGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px;padding:16px 5%;"></div>
+    </div>
     <div class="card-wrap sp-card-wrap">
       <!-- Table view -->
       <div id="view-table"><div class="tscroll"><table class="ctable" id="spTable">
@@ -1002,16 +1025,18 @@ try{ sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY); }catch(e){ console.err
 function _routeKey(key){
   if(key.indexOf('kx_day:')===0) return {table:'daily_prices',dateCol:'trade_date',dataCol:'records',date:key.slice(7)};
   if(key.indexOf('kx_del:')===0) return {table:'delivery_data',dateCol:'trade_date',dataCol:'records',date:key.slice(7)};
+  if(key.indexOf('kx_foi:')===0) return {table:'fo_oi_data',dateCol:'trade_date',dataCol:'records',date:key.slice(7)};
   if(key==='kx_settings') return {table:'app_settings',idCol:'id',id:'default',dataCol:'settings'};
   return null;
 }
 
 var _store={
   async get(key){
-    if(key==='kx_days'){
+    if(key==='kx_days'||key==='kx_foi_days'){
+      var tbl = key==='kx_days' ? 'daily_prices' : 'fo_oi_data';
       if(sb){
         try{
-          const {data,error}=await sb.from('daily_prices').select('trade_date').order('trade_date');
+          const {data,error}=await sb.from(tbl).select('trade_date').order('trade_date');
           if(!error&&data) return {value:JSON.stringify(data.map(r=>r.trade_date))};
         }catch(e){console.error('Supabase get days error',e);}
       }
@@ -1034,9 +1059,9 @@ var _store={
     try{var v=localStorage.getItem(key);return v?{value:v}:null;}catch(e){return null;}
   },
   async set(key,val){
-    if(key==='kx_days'){
+    if(key==='kx_days'||key==='kx_foi_days'){
       try{localStorage.setItem(key,val);}catch(e){}
-      return; // derived from daily_prices table rows, nothing to persist server-side
+      return; // derived from table rows, nothing to persist server-side
     }
     var t=_routeKey(key);
     if(t&&sb){
@@ -1076,6 +1101,11 @@ var _store={
 // ── Constants ──────────────────────────────────────────────
 const PIN='kokixio';
 const DAYS_KEY='kx_days';const DAY_PFX='kx_day:';const DELIV_PFX='kx_del:';
+const FOI_DAYS_KEY='kx_foi_days';const FOI_PFX='kx_foi:';
+var foiByDate={};var foiDaysIndex=[];
+async function loadFoiDaysIndex(){try{const r=await _store.get(FOI_DAYS_KEY);if(r&&r.value)foiDaysIndex=JSON.parse(r.value);}catch{}foiDaysIndex=foiDaysIndex||[];}
+async function loadFoi(d){if(foiByDate[d])return;try{const r=await _store.get(FOI_PFX+d);if(r&&r.value)foiByDate[d]=JSON.parse(r.value);}catch{}}
+async function saveFoi(d,recs){await _store.set(FOI_PFX+d,JSON.stringify(recs));foiByDate[d]=recs;}
 let isLoggedIn=false;
 let daysIndex=[];let dataByDate={};let delivByDate={};let selectedDate=null;
 let allRecords=[];let currentScreen='home';
@@ -1121,10 +1151,22 @@ function openScreen(id){
     document.getElementById('view-table').style.display='none';
     document.getElementById('view-heatmap').style.display='none';
     document.getElementById('view-indices').style.display='block';
+    document.getElementById('view-fnooi').style.display='none';
     var idxEl=document.getElementById('spFilterBar');if(idxEl)idxEl.style.display='none';
     var hdrEl=document.getElementById('stickyHdr');if(hdrEl)hdrEl.style.display='none';
     if(id==='indices') renderIndices();
     else openIndexDetail(id.replace('idx:',''));
+    document.getElementById('page-dashboard').scrollTop=0;
+  }else if(id==='fno-oi'){
+    var idtF=document.getElementById('dashIdxTicker');if(idtF)idtF.style.display='flex';
+    document.getElementById('sp-dynamic').classList.add('active');
+    document.getElementById('view-table').style.display='none';
+    document.getElementById('view-heatmap').style.display='none';
+    document.getElementById('view-indices').style.display='none';
+    document.getElementById('view-fnooi').style.display='block';
+    var fbF=document.getElementById('spFilterBar');if(fbF)fbF.style.display='none';
+    var shF=document.getElementById('stickyHdr');if(shF)shF.style.display='none';
+    renderFoiScreen();
     document.getElementById('page-dashboard').scrollTop=0;
   }else{
     var idtS=document.getElementById('dashIdxTicker');if(idtS)idtS.style.display='flex';
@@ -1132,6 +1174,7 @@ function openScreen(id){
     var vt=document.getElementById('view-table');if(vt)vt.style.display='block';
     var vh=document.getElementById('view-heatmap');if(vh)vh.style.display='none';
     document.getElementById('view-indices').style.display='none';
+    document.getElementById('view-fnooi').style.display='none';
     var fb=document.getElementById('spFilterBar');if(fb)fb.style.display='flex';
     var sh=document.getElementById('stickyHdr');if(sh)sh.style.display='flex';
     document.getElementById('sp-dynamic').classList.add('active');
@@ -1182,6 +1225,51 @@ function parseMW(rows){
 let pendingRecs=null;
 document.getElementById('mainFile').addEventListener('change',e=>{if(e.target.files[0])handleMain(e.target.files[0]);e.target.value='';});
 document.getElementById('delivFile').addEventListener('change',e=>{if(e.target.files[0])handleDeliv(e.target.files[0]);e.target.value='';});
+document.getElementById('foiFile').addEventListener('change',e=>{if(e.target.files[0])handleFoi(e.target.files[0]);e.target.value='';});
+
+function parseFoiFilename(name){
+  const m=(name||'').match(/(\d{2})(\d{2})(\d{2})/);
+  if(!m)return null;
+  const[,dd,mm,yy]=m;
+  return `20${yy}-${mm}-${dd}`;
+}
+function parseFoExpiry(s){
+  const mo={JAN:1,FEB:2,MAR:3,APR:4,MAY:5,JUN:6,JUL:7,AUG:8,SEP:9,OCT:10,NOV:11,DEC:12};
+  const m=(s||'').match(/(\d{2})-([A-Z]{3})-(\d{4})/);
+  if(!m)return null;
+  const mn=mo[m[2]];if(!mn)return null;
+  return new Date(parseInt(m[3]),mn-1,parseInt(m[1]));
+}
+function handleFoi(file){
+  Papa.parse(file,{header:true,skipEmptyLines:true,transformHeader:h=>h.trim(),transform:v=>typeof v==='string'?v.trim():v,complete:async res=>{
+    const front={}; // symbol -> {rec, expiry}
+    for(const row of res.data){
+      const cd=row.CONTRACT_D||'';
+      if(cd.indexOf('FUTSTK')!==0)continue;
+      const rest=cd.slice(6);
+      const em=rest.match(/(\d{2}-[A-Z]{3}-\d{4})$/);
+      if(!em)continue;
+      const sym=rest.slice(0,rest.length-em[1].length);
+      const expiry=parseFoExpiry(em[1]);
+      if(!sym||!expiry)continue;
+      const prevS=parseFloat(row.PREVIOUS_S)||0;
+      const close=parseFloat(row.CLOSE_PRIC)||parseFloat(row.SETTLEMENT)||0;
+      const netChg=parseFloat(row.NET_CHANGE)||0;
+      const oi=parseFloat(row.OI_NO_CON)||0;
+      const chgPct=prevS?(netChg/prevS*100):0;
+      if(!front[sym]||expiry<front[sym].expiry){
+        front[sym]={expiry,rec:{s:sym,cl:close,chg:chgPct,oi:oi}};
+      }
+    }
+    const recs=Object.values(front).map(f=>f.rec);
+    if(!recs.length){toast('No FUTSTK contracts found in this file');return;}
+    const dateStr=parseFoiFilename(file.name)||selectedDate||new Date().toISOString().slice(0,10);
+    await saveFoi(dateStr,recs);
+    if(!foiDaysIndex.includes(dateStr)){foiDaysIndex.push(dateStr);foiDaysIndex.sort();await _store.set(FOI_DAYS_KEY,JSON.stringify(foiDaysIndex));}
+    toast(`Futures OI saved · ${recs.length} stocks · ${dateStr}`);
+    if(currentScreen==='fno-oi')renderFoiScreen();
+  }});
+}
 
 function handleMain(file){
   Papa.parse(file,{header:true,skipEmptyLines:true,complete:async res=>{
@@ -1228,6 +1316,7 @@ function handleDeliv(file){
 async function initDashboard(){
   await loadSettings();syncSettingsUI();await loadTheme();
   await loadDaysIndex();
+  await loadFoiDaysIndex();
   if(daysIndex.length){
     selectedDate=daysIndex[daysIndex.length-1];
     await loadDay(selectedDate);
@@ -1364,25 +1453,25 @@ const SCREENS={
       const up=wg.filter(r=>!isNaN(r.gap)&&r.gap>=S.gap).sort((a,b)=>b.gap-a.gap);
       const dn=wg.filter(r=>!isNaN(r.gap)&&r.gap<=-S.gap).sort((a,b)=>a.gap-b.gap);
       return[...up,...dn.map(r=>({...r,_grp:'down'}))];},
-    cols:['Symbol','LTP','% Chg','Gap %','RS','30D %'],
-    row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:r.gap?((r.gap>0?'+':'')+r.gap.toFixed(2)+'%'):'—',cls:r.gap>0?'g':'r'},{v:fp(r.rs),cls:pc(r.rs)},{v:fp(r.d30),cls:pc(r.d30)}]},
+    cols:['Symbol','LTP','% Chg','Gap %','RS','30D %','365D %'],
+    row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:r.gap?((r.gap>0?'+':'')+r.gap.toFixed(2)+'%'):'—',cls:r.gap>0?'g':'r'},{v:fp(r.rs),cls:pc(r.rs)},{v:fp(r.d30),cls:pc(r.d30)},{v:fp(r.d365),cls:pc(r.d365)}]},
   big:{name:'Big Movers ≥5%',desc:'Strong directional close-to-close',icon:'🚀',
     fn:recs=>[...recs.filter(r=>r.c>=S.big).sort((a,b)=>b.c-a.c),...recs.filter(r=>r.c<=-S.big).sort((a,b)=>a.c-b.c)],
-    cols:['Symbol','LTP','% Chg','RS','Vol','30D %'],
-    row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:fp(r.rs),cls:pc(r.rs)},fv(r.v),{v:fp(r.d30),cls:pc(r.d30)}]},
+    cols:['Symbol','LTP','% Chg','RS','Vol','30D %','365D %'],
+    row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:fp(r.rs),cls:pc(r.rs)},fv(r.v),{v:fp(r.d30),cls:pc(r.d30)},{v:fp(r.d365),cls:pc(r.d365)}]},
   mid:{name:'Mid-Range Movers 1–4%',desc:'Solid momentum, not extreme',icon:'📊',
     fn:recs=>[...recs.filter(r=>r.c>=S.midMin&&r.c<=S.midMax).sort((a,b)=>b.c-a.c),...recs.filter(r=>r.c<=-S.midMin&&r.c>=-S.midMax).sort((a,b)=>a.c-b.c)],
-    cols:['Symbol','LTP','% Chg','RS','Vol/Cr','30D %'],
-    row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:fp(r.rs),cls:pc(r.rs)},fn(r.cr,1),{v:fp(r.d30),cls:pc(r.d30)}]},
+    cols:['Symbol','LTP','% Chg','RS','Vol/Cr','30D %','365D %'],
+    row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:fp(r.rs),cls:pc(r.rs)},fn(r.cr,1),{v:fp(r.d30),cls:pc(r.d30)},{v:fp(r.d365),cls:pc(r.d365)}]},
   side:{name:'Sideways Stocks',desc:'Coiling 0.01–0.30%',icon:'➡️',
     fn:recs=>[...recs.filter(r=>r.c>=S.sideMin&&r.c<=S.sideMax).sort((a,b)=>b.c-a.c),...recs.filter(r=>r.c<=-S.sideMin&&r.c>=-S.sideMax).sort((a,b)=>a.c-b.c)],
-    cols:['Symbol','LTP','% Chg','RS','Range %','30D %'],
-    row:r=>{const rng=r.dh&&r.dl&&r.p?((r.dh-r.dl)/r.p*100):NaN;return[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:fp(r.rs),cls:pc(r.rs)},{v:isNaN(rng)?'—':rng.toFixed(2)+'%',cls:''},fp(r.d30)]}},
+    cols:['Symbol','LTP','% Chg','RS','Range %','30D %','365D %'],
+    row:r=>{const rng=r.dh&&r.dl&&r.p?((r.dh-r.dl)/r.p*100):NaN;return[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:fp(r.rs),cls:pc(r.rs)},{v:isNaN(rng)?'—':rng.toFixed(2)+'%',cls:''},fp(r.d30),{v:fp(r.d365),cls:pc(r.d365)}]}},
   candle:{name:'Candle Close Position',desc:'Bull = top 80%+ of range · Bear = bottom 20%',icon:'🕯️',
     fn:recs=>{const wr=recs.map(r=>({...r,cpos:(r.dh&&r.dl&&r.dh!==r.dl)?((r.l-r.dl)/(r.dh-r.dl)*100):NaN,rng:(r.dh&&r.dl&&r.p)?((r.dh-r.dl)/r.p*100):NaN}));
       return[...wr.filter(r=>r.cpos>=80&&r.rng>=1.5).sort((a,b)=>b.cpos-a.cpos),...wr.filter(r=>r.cpos<=20&&r.rng>=1.5).sort((a,b)=>a.cpos-b.cpos)];},
-    cols:['Symbol','LTP','% Chg','Close Pos','Range %','30D %'],
-    row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:isNaN(r.cpos)?'—':r.cpos.toFixed(0)+'%',cls:r.cpos>=80?'g':r.cpos<=20?'r':''},isNaN(r.rng)?'—':r.rng.toFixed(2)+'%',{v:fp(r.d30),cls:pc(r.d30)}]},
+    cols:['Symbol','LTP','% Chg','Close Pos','Range %','30D %','365D %'],
+    row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:isNaN(r.cpos)?'—':r.cpos.toFixed(0)+'%',cls:r.cpos>=80?'g':r.cpos<=20?'r':''},isNaN(r.rng)?'—':r.rng.toFixed(2)+'%',{v:fp(r.d30),cls:pc(r.d30)},{v:fp(r.d365),cls:pc(r.d365)}]},
   grev:{name:'Gap Reversal',desc:'Gapped one way, moved opposite intraday',icon:'🔄',
     fn:recs=>{const wr=recs.map(r=>({...r,gp:(r.o&&r.p)?((r.o-r.p)/r.p*100):NaN,dm:r.o?((r.l-r.o)/r.o*100):NaN}));
       return[...wr.filter(r=>r.gp<=-0.5&&r.dm>=0.5).sort((a,b)=>a.gp-b.gp),...wr.filter(r=>r.gp>=0.5&&r.dm<=-0.5).sort((a,b)=>b.gp-a.gp)];},
@@ -1390,44 +1479,44 @@ const SCREENS={
     row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:isNaN(r.gp)?'—':fp(r.gp),cls:pc(r.gp)},{v:isNaN(r.dm)?'—':fp(r.dm),cls:pc(r.dm)},{v:fp(r.rs),cls:pc(r.rs)}]},
   hvol:{name:'High Volume Leaders',desc:'Price > ₹150, sorted by volume',icon:'📦',
     fn:recs=>recs.filter(r=>r.l>S.price&&!isNaN(r.v)&&r.v>=(S.vol||0)).sort((a,b)=>b.v-a.v),
-    cols:['Symbol','LTP','% Chg','RS','Volume','Del %','30D %'],
-    row:r=>{const dp=(delivByDate[selectedDate]||{})[r.s];return[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:fp(r.rs),cls:pc(r.rs)},fv(r.v),dp!==undefined?{v:dp.toFixed(1)+'%',cls:dp>=60?'g':dp<30?'r':''}:'—',{v:fp(r.d30),cls:pc(r.d30)}]}},
+    cols:['Symbol','LTP','% Chg','RS','Volume','Del %','30D %','365D %'],
+    row:r=>{const dp=(delivByDate[selectedDate]||{})[r.s];return[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:fp(r.rs),cls:pc(r.rs)},fv(r.v),dp!==undefined?{v:dp.toFixed(1)+'%',cls:dp>=60?'g':dp<30?'r':''}:'—',{v:fp(r.d30),cls:pc(r.d30)},{v:fp(r.d365),cls:pc(r.d365)}]}},
   tval:{name:'Traded Value Leaders',desc:'Ranked by ₹ Crores traded today',icon:'💰',
     fn:recs=>recs.filter(r=>!isNaN(r.cr)&&r.cr>0).sort((a,b)=>b.cr-a.cr),
-    cols:['Symbol','LTP','% Chg','RS','₹ Cr','Del %','30D %'],
-    row:r=>{const dp=(delivByDate[selectedDate]||{})[r.s];return[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:fp(r.rs),cls:pc(r.rs)},{v:'₹'+fn(r.cr,1),cls:'',style:'color:var(--cyan)'},dp!==undefined?{v:dp.toFixed(1)+'%',cls:dp>=60?'g':dp<30?'r':''}:'—',{v:fp(r.d30),cls:pc(r.d30)}]}},
+    cols:['Symbol','LTP','% Chg','RS','₹ Cr','Del %','30D %','365D %'],
+    row:r=>{const dp=(delivByDate[selectedDate]||{})[r.s];return[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:fp(r.rs),cls:pc(r.rs)},{v:'₹'+fn(r.cr,1),cls:'',style:'color:var(--cyan)'},dp!==undefined?{v:dp.toFixed(1)+'%',cls:dp>=60?'g':dp<30?'r':''}:'—',{v:fp(r.d30),cls:pc(r.d30)},{v:fp(r.d365),cls:pc(r.d365)}]}},
   range:{name:'Intraday Range %',desc:'9:15 AM → 3:30 PM movement (HIGH-LOW/PREV.CLOSE)',icon:'📏',
     fn:recs=>{const wr=recs.map(r=>({...r,rng:(r.dh&&r.dl&&r.p)?((r.dh-r.dl)/r.p*100):NaN})).filter(r=>!isNaN(r.rng)&&r.rng>=2);
       return wr.sort((a,b)=>b.rng-a.rng);},
-    cols:['Symbol','LTP','% Chg','RS','Range %','Vol/Cr','30D %'],
-    row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:fp(r.rs),cls:pc(r.rs)},{v:r.rng.toFixed(2)+'%',cls:''},fn(r.cr,1),{v:fp(r.d30),cls:pc(r.d30)}]},
+    cols:['Symbol','LTP','% Chg','RS','Range %','Vol/Cr','30D %','365D %'],
+    row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:fp(r.rs),cls:pc(r.rs)},{v:r.rng.toFixed(2)+'%',cls:''},fn(r.cr,1),{v:fp(r.d30),cls:pc(r.d30)},{v:fp(r.d365),cls:pc(r.d365)}]},
   consec:{name:'Consecutive Up/Down Days',desc:'Closing same direction N days in a row',icon:'📈',
     fn:recs=>recs.sort((a,b)=>b.c-a.c),cols:['Symbol','LTP','% Chg','RS','30D %','365D %'],
     row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:fp(r.rs),cls:pc(r.rs)},{v:fp(r.d30),cls:pc(r.d30)},{v:fp(r.d365),cls:pc(r.d365)}]},
   wku:{name:'Weekly Uptrend W↑',desc:'Closed higher 3+ of last 5 days',icon:'🟢',
     fn:recs=>recs.filter(r=>r.c>0).sort((a,b)=>b.c-a.c),
-    cols:['Symbol','LTP','% Chg','RS','Vol','30D %'],
-    row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:'g'},{v:fp(r.rs),cls:pc(r.rs)},fv(r.v),{v:fp(r.d30),cls:pc(r.d30)}]},
+    cols:['Symbol','LTP','% Chg','RS','Vol','30D %','365D %'],
+    row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:'g'},{v:fp(r.rs),cls:pc(r.rs)},fv(r.v),{v:fp(r.d30),cls:pc(r.d30)},{v:fp(r.d365),cls:pc(r.d365)}]},
   wkd:{name:'Weekly Downtrend W↓',desc:'Closed lower 3+ of last 5 days',icon:'🔴',
     fn:recs=>recs.filter(r=>r.c<0).sort((a,b)=>a.c-b.c),
-    cols:['Symbol','LTP','% Chg','RS','Vol','30D %'],
-    row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:'r'},{v:fp(r.rs),cls:pc(r.rs)},fv(r.v),{v:fp(r.d30),cls:pc(r.d30)}]},
+    cols:['Symbol','LTP','% Chg','RS','Vol','30D %','365D %'],
+    row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:'r'},{v:fp(r.rs),cls:pc(r.rs)},fv(r.v),{v:fp(r.d30),cls:pc(r.d30)},{v:fp(r.d365),cls:pc(r.d365)}]},
   nr7:{name:'NR7 — Narrowest Range in 7 Days',desc:'Strongest IB breakout setup for tomorrow',icon:'🎯',
     fn:recs=>{const wr=recs.map(r=>({...r,rng:(r.dh&&r.dl&&r.p)?((r.dh-r.dl)/r.p*100):NaN})).filter(r=>!isNaN(r.rng));return wr.sort((a,b)=>a.rng-b.rng);},
-    cols:['Symbol','LTP','% Chg','RS','Range %','Del %','30D %'],
-    row:r=>{const dp=(delivByDate[selectedDate]||{})[r.s];return[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:fp(r.rs),cls:pc(r.rs)},{v:isNaN(r.rng)?'—':r.rng.toFixed(2)+'%',cls:''},dp!==undefined?{v:dp.toFixed(1)+'%',cls:dp>=60?'g':dp<30?'r':''}:'—',{v:fp(r.d30),cls:pc(r.d30)}]}},
+    cols:['Symbol','LTP','% Chg','RS','Range %','Del %','30D %','365D %'],
+    row:r=>{const dp=(delivByDate[selectedDate]||{})[r.s];return[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:fp(r.rs),cls:pc(r.rs)},{v:isNaN(r.rng)?'—':r.rng.toFixed(2)+'%',cls:''},dp!==undefined?{v:dp.toFixed(1)+'%',cls:dp>=60?'g':dp<30?'r':''}:'—',{v:fp(r.d30),cls:pc(r.d30)},{v:fp(r.d365),cls:pc(r.d365)}]}},
   nr4:{name:'NR4 — Narrowest Range in 4 Days',desc:'Early breakout watch',icon:'🔭',
     fn:recs=>{const wr=recs.map(r=>({...r,rng:(r.dh&&r.dl&&r.p)?((r.dh-r.dl)/r.p*100):NaN})).filter(r=>!isNaN(r.rng));return wr.sort((a,b)=>a.rng-b.rng);},
-    cols:['Symbol','LTP','% Chg','RS','Range %','Del %','30D %'],
-    row:r=>{const dp=(delivByDate[selectedDate]||{})[r.s];return[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:fp(r.rs),cls:pc(r.rs)},{v:isNaN(r.rng)?'—':r.rng.toFixed(2)+'%',cls:''},dp!==undefined?{v:dp.toFixed(1)+'%',cls:dp>=60?'g':dp<30?'r':''}:'—',{v:fp(r.d30),cls:pc(r.d30)}]}},
+    cols:['Symbol','LTP','% Chg','RS','Range %','Del %','30D %','365D %'],
+    row:r=>{const dp=(delivByDate[selectedDate]||{})[r.s];return[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:fp(r.rs),cls:pc(r.rs)},{v:isNaN(r.rng)?'—':r.rng.toFixed(2)+'%',cls:''},dp!==undefined?{v:dp.toFixed(1)+'%',cls:dp>=60?'g':dp<30?'r':''}:'—',{v:fp(r.d30),cls:pc(r.d30)},{v:fp(r.d365),cls:pc(r.d365)}]}},
   hammer:{name:'Hammer 🔨 — Bullish Reversal',desc:'Long lower shadow ≥2%, body ≤1%',icon:'🔨',
     fn:recs=>{return recs.map(r=>{const body=Math.abs(r.l-r.o)/r.p*100;const ls=(Math.min(r.o,r.l)-r.dl)/r.p*100;return{...r,body,ls};}).filter(r=>r.ls>=S.shadow&&r.body<=S.body&&r.ls>=2*Math.max(r.body,0.01)).sort((a,b)=>b.ls-a.ls);},
-    cols:['Symbol','LTP','% Chg','RS','Shadow %','Del %','30D %'],
-    row:r=>{const dp=(delivByDate[selectedDate]||{})[r.s];return[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:fp(r.rs),cls:pc(r.rs)},{v:r.ls?r.ls.toFixed(2)+'%':'—',cls:'g'},dp!==undefined?{v:dp.toFixed(1)+'%',cls:dp>=60?'g':dp<30?'r':''}:'—',{v:fp(r.d30),cls:pc(r.d30)}]}},
+    cols:['Symbol','LTP','% Chg','RS','Shadow %','Del %','30D %','365D %'],
+    row:r=>{const dp=(delivByDate[selectedDate]||{})[r.s];return[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:fp(r.rs),cls:pc(r.rs)},{v:r.ls?r.ls.toFixed(2)+'%':'—',cls:'g'},dp!==undefined?{v:dp.toFixed(1)+'%',cls:dp>=60?'g':dp<30?'r':''}:'—',{v:fp(r.d30),cls:pc(r.d30)},{v:fp(r.d365),cls:pc(r.d365)}]}},
   star:{name:'Shooting Star ⭐ — Bearish Reversal',desc:'Long upper shadow ≥2%, body ≤1%',icon:'⭐',
     fn:recs=>{return recs.map(r=>{const body=Math.abs(r.l-r.o)/r.p*100;const us=(r.dh-Math.max(r.o,r.l))/r.p*100;return{...r,body,us};}).filter(r=>r.us>=S.shadow&&r.body<=S.body&&r.us>=2*Math.max(r.body,0.01)).sort((a,b)=>b.us-a.us);},
-    cols:['Symbol','LTP','% Chg','RS','Shadow %','Del %','30D %'],
-    row:r=>{const dp=(delivByDate[selectedDate]||{})[r.s];return[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:fp(r.rs),cls:pc(r.rs)},{v:r.us?r.us.toFixed(2)+'%':'—',cls:'r'},dp!==undefined?{v:dp.toFixed(1)+'%',cls:dp>=60?'g':dp<30?'r':''}:'—',{v:fp(r.d30),cls:pc(r.d30)}]}},
+    cols:['Symbol','LTP','% Chg','RS','Shadow %','Del %','30D %','365D %'],
+    row:r=>{const dp=(delivByDate[selectedDate]||{})[r.s];return[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:fp(r.rs),cls:pc(r.rs)},{v:r.us?r.us.toFixed(2)+'%':'—',cls:'r'},dp!==undefined?{v:dp.toFixed(1)+'%',cls:dp>=60?'g':dp<30?'r':''}:'—',{v:fp(r.d30),cls:pc(r.d30)},{v:fp(r.d365),cls:pc(r.d365)}]}},
   ndh:{name:'New N-Day Closing High',desc:'Highest closing price in last N days',icon:'🏔️',
     fn:recs=>recs.filter(r=>r.c>0).sort((a,b)=>b.c-a.c),
     cols:['Symbol','LTP','% Chg','RS','30D %','365D %'],
@@ -1438,36 +1527,36 @@ const SCREENS={
     row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:'r'},{v:fp(r.rs),cls:pc(r.rs)},{v:fp(r.d30),cls:pc(r.d30)},{v:fp(r.d365),cls:pc(r.d365)}]},
   '52prox':{name:'52W Proximity',desc:'1–20% from 52-week high or low',icon:'📌',
     fn:recs=>recs.map(r=>({...r,distH:r.h&&r.l?(r.h-r.l)/r.h*100:NaN,distL:r.w&&r.l?(r.l-r.w)/r.w*100:NaN})).filter(r=>(!isNaN(r.distH)&&r.distH>=S.p52min&&r.distH<=S.p52max)||(!isNaN(r.distL)&&r.distL>=S.p52min&&r.distL<=S.p52max)).sort((a,b)=>(isNaN(a.distH)?999:a.distH)-(isNaN(b.distH)?999:b.distH)),
-    cols:['Symbol','LTP','% Chg','Dist 52H%','Dist 52L%','RS','30D %'],
-    row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},isNaN(r.distH)?'—':r.distH.toFixed(2)+'%',isNaN(r.distL)?'—':r.distL.toFixed(2)+'%',{v:fp(r.rs),cls:pc(r.rs)},{v:fp(r.d30),cls:pc(r.d30)}]},
+    cols:['Symbol','LTP','% Chg','Dist 52H%','Dist 52L%','RS','30D %','365D %'],
+    row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},isNaN(r.distH)?'—':r.distH.toFixed(2)+'%',isNaN(r.distL)?'—':r.distL.toFixed(2)+'%',{v:fp(r.rs),cls:pc(r.rs)},{v:fp(r.d30),cls:pc(r.d30)},{v:fp(r.d365),cls:pc(r.d365)}]},
   delhi:{name:'High Delivery DEL↑ ≥60%',desc:'Institutional conviction — sustained buying/selling',icon:'🏦',
     fn:recs=>{const dm=delivByDate[selectedDate]||{};return recs.filter(r=>dm[r.s]>=S.delHigh).map(r=>({...r,dp:dm[r.s]})).sort((a,b)=>b.dp-a.dp);},
-    cols:['Symbol','LTP','% Chg','RS','Del %','Vol','30D %'],
-    row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:fp(r.rs),cls:pc(r.rs)},{v:r.dp.toFixed(1)+'%',cls:'g'},fv(r.v),{v:fp(r.d30),cls:pc(r.d30)}]},
+    cols:['Symbol','LTP','% Chg','RS','Del %','Vol','30D %','365D %'],
+    row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:fp(r.rs),cls:pc(r.rs)},{v:r.dp.toFixed(1)+'%',cls:'g'},fv(r.v),{v:fp(r.d30),cls:pc(r.d30)},{v:fp(r.d365),cls:pc(r.d365)}]},
   dello:{name:'Low Delivery SPC <30%',desc:'Pure intraday speculation — likely to reverse',icon:'⚡',
     fn:recs=>{const dm=delivByDate[selectedDate]||{};return recs.filter(r=>dm[r.s]!==undefined&&dm[r.s]<S.delLow).map(r=>({...r,dp:dm[r.s]})).sort((a,b)=>a.dp-b.dp);},
-    cols:['Symbol','LTP','% Chg','RS','Del %','Vol','30D %'],
-    row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:fp(r.rs),cls:pc(r.rs)},{v:r.dp.toFixed(1)+'%',cls:'r'},fv(r.v),{v:fp(r.d30),cls:pc(r.d30)}]},
+    cols:['Symbol','LTP','% Chg','RS','Del %','Vol','30D %','365D %'],
+    row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:fp(r.rs),cls:pc(r.rs)},{v:r.dp.toFixed(1)+'%',cls:'r'},fv(r.v),{v:fp(r.d30),cls:pc(r.d30)},{v:fp(r.d365),cls:pc(r.d365)}]},
   ddstreak:{name:'Delivery Streak DD',desc:'High delivery % for 2+ consecutive days',icon:'🔥',
     fn:recs=>{const dm=delivByDate[selectedDate]||{};return recs.filter(r=>dm[r.s]>=S.delHigh).map(r=>({...r,dp:dm[r.s]})).sort((a,b)=>b.dp-a.dp);},
-    cols:['Symbol','LTP','% Chg','RS','Del %','30D %'],
-    row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:fp(r.rs),cls:pc(r.rs)},{v:r.dp.toFixed(1)+'%',cls:'g'},{v:fp(r.d30),cls:pc(r.d30)}]},
+    cols:['Symbol','LTP','% Chg','RS','Del %','30D %','365D %'],
+    row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:fp(r.rs),cls:pc(r.rs)},{v:r.dp.toFixed(1)+'%',cls:'g'},{v:fp(r.d30),cls:pc(r.d30)},{v:fp(r.d365),cls:pc(r.d365)}]},
   risingdel:{name:'Rising Delivery',desc:'Delivery % increasing every day',icon:'📶',
     fn:recs=>{const dm=delivByDate[selectedDate]||{};return recs.filter(r=>dm[r.s]>=S.delHigh).map(r=>({...r,dp:dm[r.s]})).sort((a,b)=>b.dp-a.dp);},
-    cols:['Symbol','LTP','% Chg','RS','Del % Today','30D %'],
-    row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:fp(r.rs),cls:pc(r.rs)},{v:r.dp.toFixed(1)+'%',cls:'g'},{v:fp(r.d30),cls:pc(r.d30)}]},
+    cols:['Symbol','LTP','% Chg','RS','Del % Today','30D %','365D %'],
+    row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:fp(r.rs),cls:pc(r.rs)},{v:r.dp.toFixed(1)+'%',cls:'g'},{v:fp(r.d30),cls:pc(r.d30)},{v:fp(r.d365),cls:pc(r.d365)}]},
   dd3plus:{name:'DD3+ Delivery Leaders 🏆',desc:'Institutional accumulation 3+ consecutive days',icon:'🏆',
     fn:recs=>{const dm=delivByDate[selectedDate]||{};return recs.filter(r=>dm[r.s]>=S.delHigh).map(r=>({...r,dp:dm[r.s]})).sort((a,b)=>b.dp-a.dp);},
-    cols:['Symbol','LTP','% Chg','RS','Del %','Vol','30D %'],
-    row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:fp(r.rs),cls:pc(r.rs)},{v:r.dp.toFixed(1)+'%',cls:'g'},fv(r.v),{v:fp(r.d30),cls:pc(r.d30)}]},
+    cols:['Symbol','LTP','% Chg','RS','Del %','Vol','30D %','365D %'],
+    row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:fp(r.rs),cls:pc(r.rs)},{v:r.dp.toFixed(1)+'%',cls:'g'},fv(r.v),{v:fp(r.d30),cls:pc(r.d30)},{v:fp(r.d365),cls:pc(r.d365)}]},
   multi:{name:'Multi-Screen Confluences',desc:'Same stock in multiple screens today',icon:'🎯',
     fn:recs=>recs.sort((a,b)=>b.c-a.c),
     cols:['Symbol','LTP','% Chg','RS','30D %','365D %'],
     row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:fp(r.rs),cls:pc(r.rs)},{v:fp(r.d30),cls:pc(r.d30)},{v:fp(r.d365),cls:pc(r.d365)}]},
   fno:{name:'F&O Stocks',desc:'NSE Futures & Options eligible stocks',icon:'🎯',
     fn:recs=>{const set=new Set(SECTORS['F&O STOCKS'].stocks);return recs.filter(r=>set.has(r.s)).sort((a,b)=>b.c-a.c);},
-    cols:['Symbol','LTP','% Chg','RS','Vol','30D %'],
-    row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:fp(r.rs),cls:pc(r.rs)},fv(r.v),{v:fp(r.d30),cls:pc(r.d30)}]},
+    cols:['Symbol','LTP','% Chg','RS','Vol','30D %','365D %'],
+    row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:fp(r.rs),cls:pc(r.rs)},fv(r.v),{v:fp(r.d30),cls:pc(r.d30)},{v:fp(r.d365),cls:pc(r.d365)}]},
 };
 
 // ── Render dynamic screen ───────────────────────────────────
@@ -2131,7 +2220,7 @@ function applyScreenFilters(){
     var sb=((document.getElementById('fSortBy')||{}).value||'');
     if(sb){
       var asc=sb.endsWith('_asc');
-      var keyMap={c:function(r){return r.c||0;},rs:function(r){return r.rs||0;},v:function(r){return r.v||0;},d30:function(r){return r.d30||0;},del:function(r){return(delivByDate[selectedDate]||{})[r.s]||0;}};
+      var keyMap={c:function(r){return r.c||0;},rs:function(r){return r.rs||0;},v:function(r){return r.v||0;},d30:function(r){return r.d30||0;},d365:function(r){return r.d365||0;},del:function(r){return(delivByDate[selectedDate]||{})[r.s]||0;}};
       var key=sb.replace(/_desc|_asc/g,'');
       var kfn=keyMap[key]||function(){return 0;};
       rows.sort(function(a,b){return asc?kfn(a)-kfn(b):kfn(b)-kfn(a);});
@@ -2568,6 +2657,58 @@ function setIdxFilter(f,btn){
     else lbl.textContent='All sectors by avg % change';
   }
   renderIndices();
+}
+
+// ── Futures OI (Long/Short Buildup) ─────────────────────────────────────────
+var foiFilter='all';
+function setFoiFilter(f,btn){
+  foiFilter=f;
+  document.querySelectorAll('#view-fnooi .vt-btn').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');
+  renderFoiScreen();
+}
+function classifyFoi(chg,oiChg){
+  if(oiChg==null||isNaN(oiChg))return null;
+  if(chg>=0&&oiChg>=0)return'L';
+  if(chg<0&&oiChg>=0)return'S';
+  if(chg<0&&oiChg<0)return'LU';
+  return'SC';
+}
+async function renderFoiScreen(){
+  var grid=document.getElementById('foiGrid');var meta=document.getElementById('foiMeta');
+  if(!grid)return;
+  if(!foiDaysIndex.length){
+    grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:50px 20px;color:var(--muted);">No Futures OI data uploaded yet.<br>Click the <b>📊 OI Data</b> button on the dashboard and upload your NSE F&O Bhavcopy (fo*.csv) file.</div>';
+    if(meta)meta.textContent='';
+    return;
+  }
+  var today=foiDaysIndex[foiDaysIndex.length-1];
+  await loadFoi(today);
+  var todayRecs=foiByDate[today]||[];
+  var prevDate=foiDaysIndex.length>1?foiDaysIndex[foiDaysIndex.length-2]:null;
+  var prevMap={};
+  if(prevDate){await loadFoi(prevDate);(foiByDate[prevDate]||[]).forEach(function(r){prevMap[r.s]=r.oi;});}
+  var search=(document.getElementById('foiSearch').value||'').trim().toUpperCase();
+  var items=todayRecs.map(function(r){
+    var oiChg=null;
+    if(prevMap[r.s]!==undefined&&prevMap[r.s]>0)oiChg=(r.oi-prevMap[r.s])/prevMap[r.s]*100;
+    return{s:r.s,cl:r.cl,chg:r.chg,oiChg:oiChg,cls:classifyFoi(r.chg,oiChg)};
+  }).filter(function(it){return!search||it.s.indexOf(search)!==-1;})
+    .filter(function(it){return foiFilter==='all'||it.cls===foiFilter;})
+    .sort(function(a,b){return(b.oiChg==null?-999:b.oiChg)-(a.oiChg==null?-999:a.oiChg);});
+  if(meta)meta.textContent=today+(prevDate?(' vs '+prevDate):' · upload a previous day too for buildup classification')+' · '+items.length+' stocks';
+  if(!items.length){grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--muted);">No stocks match this filter</div>';return;}
+  var clsMeta={L:{bg:'#16a34a',lbl:'Long'},S:{bg:'#dc2626',lbl:'Short'},LU:{bg:'#0e7490',lbl:'Long Unwinding'},SC:{bg:'#b45309',lbl:'Short Covering'}};
+  grid.innerHTML=items.map(function(it){
+    var m=clsMeta[it.cls]||{bg:'#374151',lbl:'No history yet'};
+    return'<div style="background:'+m.bg+';border-radius:10px;padding:14px;color:#fff;">'+
+      '<div style="font-weight:700;font-size:14px;margin-bottom:2px;">'+it.s+'</div>'+
+      '<div style="font-size:10px;opacity:.8;margin-bottom:8px;">'+m.lbl+'</div>'+
+      '<div style="font-size:11px;opacity:.9;display:flex;justify-content:space-between;padding:2px 0;"><span>Price</span><span>'+fn(it.cl)+'</span></div>'+
+      '<div style="font-size:11px;opacity:.9;display:flex;justify-content:space-between;padding:2px 0;"><span>%Price</span><span>'+fp(it.chg)+'</span></div>'+
+      '<div style="font-size:11px;opacity:.9;display:flex;justify-content:space-between;padding:2px 0;"><span>%OI</span><span>'+(it.oiChg==null?'—':fp(it.oiChg))+'</span></div>'+
+    '</div>';
+  }).join('');
 }
 
 function renderIndices(){
