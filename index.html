@@ -1256,7 +1256,7 @@ function handleFoi(file){
       const close=parseFloat(row.CLOSE_PRIC)||parseFloat(row.SETTLEMENT)||0;
       const netChg=parseFloat(row.NET_CHANGE)||0;
       const oi=parseFloat(row.OI_NO_CON)||0;
-      const chgPct=prevS?(netChg/prevS*100):0;
+      const chgPct=prevS?((close-prevS)/prevS*100):(netChg||0);
       if(!front[sym]||expiry<front[sym].expiry){
         front[sym]={expiry,rec:{s:sym,cl:close,chg:chgPct,oi:oi}};
       }
