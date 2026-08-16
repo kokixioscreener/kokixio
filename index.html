@@ -371,6 +371,17 @@ footer{background:var(--panel);border-top:1px solid var(--border);padding:36px 5
   .idx-detail-title{font-family:'Orbitron',monospace;font-size:18px;font-weight:700;}
   .idx-detail-chg{font-size:22px;font-weight:800;font-family:'JetBrains Mono',monospace;}
 
+.dcl-day{margin-bottom:22px;background:var(--panel2);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+.dcl-date-row{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:rgba(249,115,22,.08);border-bottom:1px solid var(--border);}
+.dcl-date{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:14px;color:var(--text);}
+.dcl-count{font-size:11px;color:#f97316;font-weight:600;}
+.dcl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;padding:14px 16px;}
+.dcl-chip{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:3px;}
+.dcl-sym{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:13px;color:var(--text);}
+.dcl-ltp{font-size:12px;color:var(--muted);}
+.dcl-chg{font-size:12px;font-weight:600;}
+.dcl-chg.g{color:#22c55e;}
+.dcl-chg.r{color:#ef4444;}
 </style>
 </head>
 <body>
@@ -477,6 +488,11 @@ footer{background:var(--panel);border-top:1px solid var(--border);padding:36px 5
     <!-- Futures OI -->
     <div class="nav-item">
       <button class="nav-btn" style="color:#26c6da;font-weight:600;" onclick="openScreen('fno-oi')">📊 Futures OI</button>
+    </div>
+
+    <!-- Donchian 20D Breakout Log -->
+    <div class="nav-item">
+      <button class="nav-btn" style="color:#f97316;font-weight:600;" onclick="openScreen('donchian')">🏹 Donchian 20D</button>
     </div>
 
     <!-- About Dropdown -->
@@ -893,6 +909,20 @@ footer{background:var(--panel);border-top:1px solid var(--border);padding:36px 5
       </div>
       <div id="foiGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px;padding:16px 5%;"></div>
     </div>
+
+    <!-- Donchian 20-Day Breakout Log -->
+    <div id="view-donchian" style="display:none;">
+      <button class="idx-back-btn" onclick="openScreen('home')">← Back to Home</button>
+      <div style="padding:12px 5%;display:flex;align-items:center;gap:10px;flex-wrap:wrap;border-bottom:1px solid var(--border);">
+        <div>
+          <div style="font-size:18px;font-weight:700;color:var(--text);">🏹 Donchian 20-Day High Breakout Log</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px;">Every upload date where a stock's close broke its prior 20-day high — history stays, never overwritten</div>
+        </div>
+        <span style="margin-left:auto;font-size:11px;color:var(--muted);" id="dclMeta"></span>
+      </div>
+      <div id="dclLog" style="padding:16px 5%;"></div>
+    </div>
+
     <div class="card-wrap sp-card-wrap">
       <!-- Table view -->
       <div id="view-table"><div class="tscroll"><table class="ctable" id="spTable">
@@ -1145,6 +1175,7 @@ function openScreen(id){
     document.getElementById('dashTitle').textContent='Dashboard';
     document.getElementById('page-dashboard').scrollTop=0;
     var idt=document.getElementById('dashIdxTicker');if(idt)idt.style.display='flex';
+    var vdH=document.getElementById('view-donchian');if(vdH)vdH.style.display='none';
   }else if(id==='indices'||id.startsWith('idx:')){
     var idtI=document.getElementById('dashIdxTicker');if(idtI)idtI.style.display='flex';
     document.getElementById('sp-dynamic').classList.add('active');
@@ -1154,6 +1185,7 @@ function openScreen(id){
     document.getElementById('view-fnooi').style.display='none';
     var idxEl=document.getElementById('spFilterBar');if(idxEl)idxEl.style.display='none';
     var hdrEl=document.getElementById('stickyHdr');if(hdrEl)hdrEl.style.display='none';
+    var vdI=document.getElementById('view-donchian');if(vdI)vdI.style.display='none';
     if(id==='indices') renderIndices();
     else openIndexDetail(id.replace('idx:',''));
     document.getElementById('page-dashboard').scrollTop=0;
@@ -1166,7 +1198,20 @@ function openScreen(id){
     document.getElementById('view-fnooi').style.display='block';
     var fbF=document.getElementById('spFilterBar');if(fbF)fbF.style.display='none';
     var shF=document.getElementById('stickyHdr');if(shF)shF.style.display='none';
+    var vdF=document.getElementById('view-donchian');if(vdF)vdF.style.display='none';
     renderFoiScreen();
+    document.getElementById('page-dashboard').scrollTop=0;
+  }else if(id==='donchian'){
+    var idtD=document.getElementById('dashIdxTicker');if(idtD)idtD.style.display='flex';
+    document.getElementById('sp-dynamic').classList.add('active');
+    document.getElementById('view-table').style.display='none';
+    document.getElementById('view-heatmap').style.display='none';
+    document.getElementById('view-indices').style.display='none';
+    document.getElementById('view-fnooi').style.display='none';
+    document.getElementById('view-donchian').style.display='block';
+    var fbD=document.getElementById('spFilterBar');if(fbD)fbD.style.display='none';
+    var shD=document.getElementById('stickyHdr');if(shD)shD.style.display='none';
+    renderDonchianScreen();
     document.getElementById('page-dashboard').scrollTop=0;
   }else{
     var idtS=document.getElementById('dashIdxTicker');if(idtS)idtS.style.display='flex';
@@ -1175,6 +1220,7 @@ function openScreen(id){
     var vh=document.getElementById('view-heatmap');if(vh)vh.style.display='none';
     document.getElementById('view-indices').style.display='none';
     document.getElementById('view-fnooi').style.display='none';
+    var vd=document.getElementById('view-donchian');if(vd)vd.style.display='none';
     var fb=document.getElementById('spFilterBar');if(fb)fb.style.display='flex';
     var sh=document.getElementById('stickyHdr');if(sh)sh.style.display='flex';
     document.getElementById('sp-dynamic').classList.add('active');
@@ -2673,6 +2719,60 @@ function classifyFoi(chg,oiChg){
   if(chg<0&&oiChg>=0)return'S';
   if(chg<0&&oiChg<0)return'LU';
   return'SC';
+}
+// ── Donchian 20-Day Breakout Log ─────────────────────────────
+// Walks every uploaded date in order and flags stocks whose close broke
+// the highest daily HIGH of the prior N days (default 20). Every date
+// that produced at least one breakout is kept — nothing is ever deleted
+// as new dates get added on top of older history.
+function computeDonchianLog(lookback){
+  lookback=lookback||20;
+  var log=[];
+  var symHist={}; // symbol -> array of {dh} in chronological order (oldest first)
+  for(var i=0;i<daysIndex.length;i++){
+    var d=daysIndex[i];
+    var recs=dataByDate[d]||[];
+    var hits=[];
+    for(var j=0;j<recs.length;j++){
+      var r=recs[j];
+      var hist=symHist[r.s];
+      if(hist&&hist.length>=lookback){
+        var win=hist.slice(hist.length-lookback);
+        var maxH=-Infinity;
+        for(var k=0;k<win.length;k++){if(!isNaN(win[k])&&win[k]>maxH)maxH=win[k];}
+        if(!isNaN(r.l)&&maxH>-Infinity&&r.l>maxH){hits.push(r);}
+      }
+    }
+    if(hits.length){hits.sort(function(a,b){return (b.c||0)-(a.c||0);});log.push({date:d,stocks:hits});}
+    for(var m=0;m<recs.length;m++){
+      var rr=recs[m];
+      if(!symHist[rr.s])symHist[rr.s]=[];
+      symHist[rr.s].push(isNaN(rr.dh)?NaN:rr.dh);
+    }
+  }
+  return log;
+}
+function renderDonchianScreen(){
+  var container=document.getElementById('dclLog');
+  var meta=document.getElementById('dclMeta');
+  if(!container)return;
+  if(daysIndex.length<21){
+    if(meta)meta.textContent=daysIndex.length+' day(s) of history uploaded';
+    container.innerHTML='<div style="padding:60px 20px;text-align:center;color:var(--muted);">Need at least 21 days of uploaded history to compute a 20-day breakout (you have '+daysIndex.length+'). Keep uploading daily MW files — this log fills in automatically.</div>';
+    return;
+  }
+  var log=computeDonchianLog(20);
+  if(meta)meta.textContent=daysIndex.length+' day(s) of history · '+log.length+' breakout date(s) found';
+  if(!log.length){
+    container.innerHTML='<div style="padding:60px 20px;text-align:center;color:var(--muted);">No 20-day high breakouts found yet in your uploaded history.</div>';
+    return;
+  }
+  container.innerHTML=log.slice().reverse().map(function(entry){
+    var chips=entry.stocks.map(function(r){
+      return '<div class="dcl-chip"><span class="dcl-sym">'+r.s+'</span><span class="dcl-ltp">₹'+fn(r.l)+'</span><span class="dcl-chg '+pc(r.c)+'">'+fp(r.c)+'</span></div>';
+    }).join('');
+    return '<div class="dcl-day"><div class="dcl-date-row"><span class="dcl-date">📅 '+entry.date+'</span><span class="dcl-count">'+entry.stocks.length+' stock'+(entry.stocks.length>1?'s':'')+' broke 20D high</span></div><div class="dcl-grid">'+chips+'</div></div>';
+  }).join('');
 }
 async function renderFoiScreen(){
   var grid=document.getElementById('foiGrid');var meta=document.getElementById('foiMeta');
