@@ -490,9 +490,15 @@ footer{background:var(--panel);border-top:1px solid var(--border);padding:36px 5
       <button class="nav-btn" style="color:#26c6da;font-weight:600;" onclick="openScreen('fno-oi')">📊 Futures OI</button>
     </div>
 
-    <!-- Donchian 20D Breakout Log -->
+    <!-- Momentum Stocks Dropdown -->
     <div class="nav-item">
-      <button class="nav-btn" style="color:#f97316;font-weight:600;" onclick="openScreen('donchian')">🏹 Donchian 20D</button>
+      <button class="nav-btn" style="color:#f97316;font-weight:600;">📶 Momentum Stocks <span class="arrow">▾</span></button>
+      <div class="dd-mega" style="min-width:220px;left:0;transform:none;">
+        <div>
+          <div class="dd-col-title">Breakout Logs</div>
+          <button class="dd-link" onclick="openScreen('donchian')"><span class="ico">🏹</span><span class="name">Donchian 20D</span></button>
+        </div>
+      </div>
     </div>
 
     <!-- About Dropdown -->
