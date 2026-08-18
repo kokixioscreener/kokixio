@@ -23,9 +23,10 @@ nav{position:fixed;top:0;left:0;right:0;z-index:300;display:flex;align-items:cen
 .nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;}
 .logo-wordmark{font-family:'Orbitron',monospace;font-weight:700;font-size:20px;color:var(--text);letter-spacing:1px;}
 .logo-wordmark span{color:var(--coral);}
-.nav-center{display:flex;align-items:center;gap:4px;}
-.nav-item{position:relative;}
-.nav-btn{background:none;border:none;color:var(--muted);font-size:14px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;padding:8px 16px;border-radius:6px;display:flex;align-items:center;gap:5px;transition:color .2s,background .2s;}
+.nav-center{display:flex;align-items:center;gap:2px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;}
+.nav-center::-webkit-scrollbar{display:none;}
+.nav-item{position:relative;flex-shrink:0;}
+.nav-btn{background:none;border:none;color:var(--muted);font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;padding:8px 11px;border-radius:6px;display:flex;align-items:center;gap:4px;transition:color .2s,background .2s;white-space:nowrap;}
 .nav-btn:hover,.nav-item:hover .nav-btn{color:var(--text);background:rgba(255,255,255,.05);}
 .nav-btn .arrow{font-size:10px;transition:transform .2s;}
 .nav-item:hover .arrow{transform:rotate(180deg);}
@@ -405,7 +406,7 @@ footer{background:var(--panel);border-top:1px solid var(--border);padding:36px 5
   <div class="nav-center">
     <!-- Screens Dropdown -->
     <div class="nav-item">      <button class="nav-btn">Screens <span class="arrow">▾</span></button>
-      <div class="dd-mega three-col">
+      <div class="dd-mega three-col" style="left:0;transform:none;">
         <div>
           <div class="dd-col-title">Price Action</div>
           <button class="dd-link" onclick="openScreen('gap')"><span class="ico">⬆️</span><span class="name">Gap Up / Down</span></button>
@@ -527,6 +528,7 @@ footer{background:var(--panel);border-top:1px solid var(--border);padding:36px 5
   <div class="nav-right" id="navRight">
     <button class="login-btn" id="themeBtn" onclick="toggleTheme()" title="Toggle light/dark" style="padding:8px 12px;font-size:16px;">☀️</button>
     <button class="login-btn" id="loginBtn" onclick="showLogin()">Login</button>
+    <button class="login-btn" id="logoutBtn" style="display:none;" onclick="doLogout()">Logout</button>
     <button class="open-btn" id="dashBtn" style="display:none;" onclick="goPage('dashboard')">Dashboard →</button>
   </div>
 </nav>
@@ -1163,8 +1165,15 @@ function showLogin(){document.getElementById('loginModal').classList.add('show')
 function hideLogin(){document.getElementById('loginModal').classList.remove('show');}
 function doLogin(){
   const pin=document.getElementById('pinInput').value;
-  if(pin===(S&&S.pin?S.pin:DEFAULT_S.pin)){hideLogin();isLoggedIn=true;document.getElementById('loginBtn').style.display='none';document.getElementById('dashBtn').style.display='block';goPage('dashboard');initDashboard();}
+  if(pin===(S&&S.pin?S.pin:DEFAULT_S.pin)){hideLogin();isLoggedIn=true;document.getElementById('loginBtn').style.display='none';document.getElementById('logoutBtn').style.display='block';document.getElementById('dashBtn').style.display='block';goPage('dashboard');initDashboard();}
   else{document.getElementById('loginErr').style.display='block';}
+}
+function doLogout(){
+  isLoggedIn=false;
+  document.getElementById('loginBtn').style.display='block';
+  document.getElementById('logoutBtn').style.display='none';
+  document.getElementById('dashBtn').style.display='none';
+  goPage('landing');
 }
 document.getElementById('pinInput').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
 document.getElementById('loginModal').addEventListener('click',e=>{if(e.target===document.getElementById('loginModal'))hideLogin();});
