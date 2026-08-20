@@ -502,10 +502,12 @@ footer{background:var(--panel);border-top:1px solid var(--border);padding:36px 5
           <button class="dd-link" onclick="openScreen('rsleaders')"><span class="ico">🏅</span><span class="name">RS Leaders</span></button>
           <button class="dd-link" onclick="openScreen('ltleader')"><span class="ico">👑</span><span class="name">Long-Term Leader</span></button>
           <button class="dd-link" onclick="openScreen('strongclose')"><span class="ico">✅</span><span class="name">Strong Candle Close</span></button>
+          <button class="dd-link" onclick="openScreen('steadycomp')"><span class="ico">🧱</span><span class="name">Steady Compounder</span></button>
         </div>
         <div>
           <div class="dd-col-title">Breakouts & Entries</div>
           <button class="dd-link" onclick="openScreen('freshbreak')"><span class="ico">🏁</span><span class="name">Fresh Breakout</span></button>
+          <button class="dd-link" onclick="openScreen('multibreak')"><span class="ico">📶</span><span class="name">Multi-Day Breakout</span></button>
           <button class="dd-link" onclick="openScreen('earlysetup')"><span class="ico">🔭</span><span class="name">Early Setup</span></button>
           <button class="dd-link" onclick="openScreen('volsurge')"><span class="ico">💥</span><span class="name">Volume Surge Breakout</span></button>
           <button class="dd-link" onclick="openScreen('momsqueeze')"><span class="ico">🌀</span><span class="name">Momentum Squeeze</span></button>
@@ -521,6 +523,8 @@ footer{background:var(--panel);border-top:1px solid var(--border);padding:36px 5
           <button class="dd-link" onclick="openScreen('contraaccum')"><span class="ico">🔍</span><span class="name">Contrarian Accumulation</span></button>
           <div class="dd-col-title" style="margin-top:14px;">Avoid List</div>
           <button class="dd-link" onclick="openScreen('weakbounce')"><span class="ico">🚫</span><span class="name">Weak Bounce</span></button>
+          <button class="dd-link" onclick="openScreen('specfroth')"><span class="ico">🎈</span><span class="name">Speculative Froth</span></button>
+          <button class="dd-link" onclick="openScreen('fadegap')"><span class="ico">📉</span><span class="name">Fading Gap</span></button>
           <button class="dd-link" onclick="openScreen('dangerlist')"><span class="ico">⚠️</span><span class="name">Danger List</span></button>
         </div>
       </div>
@@ -1741,6 +1745,31 @@ const SCREENS={
       return wr.filter(r=>!isNaN(r.rng)&&r.rng>=3&&r.l>S.price&&!isNaN(r.v)&&r.rs>0).sort((a,b)=>b.rng-a.rng);},
     cols:['Symbol','LTP','% Chg','Range %','Volume','RS'],
     row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:r.rng.toFixed(2)+'%',cls:''},fv(r.v),{v:fp(r.rs),cls:'g'}]},
+  specfroth:{name:'Speculative Froth',desc:'Big Move ≥5% + Top Traded Value ₹Cr + Delivery <30% — big price/value action with no real buying behind it, high reversal risk',icon:'🎈',
+    fn:recs=>{const dm=delivByDate[selectedDate]||{};
+      return recs.filter(r=>Math.abs(r.c)>=S.big&&!isNaN(r.cr)&&r.cr>0&&dm[r.s]!==undefined&&dm[r.s]<S.delLow)
+        .map(r=>({...r,dp:dm[r.s]})).sort((a,b)=>b.cr-a.cr);},
+    cols:['Symbol','LTP','% Chg','₹ Cr','Del %','RS'],
+    row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:'₹'+fn(r.cr,1),style:'color:var(--cyan)'},{v:r.dp.toFixed(1)+'%',cls:'r'},{v:fp(r.rs),cls:pc(r.rs)}]},
+  fadegap:{name:'Fading Gap',desc:'Gap Reversal + Delivery <30% — the gap faded on no institutional backing, weak follow-through not a genuine reversal',icon:'📉',
+    fn:recs=>{const dm=delivByDate[selectedDate]||{};
+      const wr=recs.map(r=>({...r,gp:(r.o&&r.p)?((r.o-r.p)/r.p*100):NaN,dm2:r.o?((r.l-r.o)/r.o*100):NaN,dp:dm[r.s]}));
+      return wr.filter(r=>((r.gp<=-0.5&&r.dm2>=0.5)||(r.gp>=0.5&&r.dm2<=-0.5))&&r.dp!==undefined&&r.dp<S.delLow)
+        .sort((a,b)=>Math.abs(b.gp)-Math.abs(a.gp));},
+    cols:['Symbol','LTP','% Chg','Gap %','Recovery %','Del %'],
+    row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:fp(r.gp),cls:pc(r.gp)},{v:fp(r.dm2),cls:pc(r.dm2)},{v:r.dp.toFixed(1)+'%',cls:'r'}]},
+  steadycomp:{name:'Steady Compounder',desc:'Weekly Uptrend W↑ + tight Range % (<1.5%) + Delivery ≥60% — advancing steadily without violent swings, good for positional/swing holds',icon:'🧱',
+    fn:recs=>{const dm=delivByDate[selectedDate]||{};
+      const wr=recs.map(r=>({...r,rng:(r.dh&&r.dl&&r.p)?((r.dh-r.dl)/r.p*100):NaN,dp:dm[r.s]}));
+      return wr.filter(r=>_wkUpSet.has(r.s)&&!isNaN(r.rng)&&r.rng<1.5&&r.dp!==undefined&&r.dp>=S.delHigh)
+        .sort((a,b)=>a.rng-b.rng);},
+    cols:['Symbol','LTP','% Chg','Range %','Del %','RS'],
+    row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:'g'},{v:r.rng.toFixed(2)+'%',cls:''},{v:r.dp.toFixed(1)+'%',cls:'g'},{v:fp(r.rs),cls:pc(r.rs)}]},
+  multibreak:{name:'Multi-Day Breakout',desc:'Consecutive Up Days ≥3 + New N-Day High + High Volume Leader — breakout built over several days, not a one-off spike',icon:'📶',
+    fn:recs=>recs.filter(r=>_consecMap[r.s]&&_consecMap[r.s].up>=3&&r.c>0&&r.l>S.price&&!isNaN(r.v))
+      .sort((a,b)=>b.v-a.v),
+    cols:['Symbol','LTP','% Chg','RS','Volume','30D %','365D %'],
+    row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:'g'},{v:fp(r.rs),cls:pc(r.rs)},fv(r.v),{v:fp(r.d30),cls:pc(r.d30)},{v:fp(r.d365),cls:pc(r.d365)}]},
 };
 
 // ── Render dynamic screen ───────────────────────────────────
@@ -2354,7 +2383,8 @@ var SCREEN_THEMES={
   volsurge:'theme-orange',quietaccum:'theme-teal',momsqueeze:'theme-purple',
   strongclose:'theme-green',fnomom:'theme-amber',weakbounce:'theme-red',
   rsleaders:'theme-green',buydip:'theme-cyan',gapgo:'theme-blue',
-  ltleader:'theme-amber',contraaccum:'theme-purple',rangeexp:'theme-orange'
+  ltleader:'theme-amber',contraaccum:'theme-purple',rangeexp:'theme-orange',
+  specfroth:'theme-red',fadegap:'theme-red',steadycomp:'theme-green',multibreak:'theme-amber'
 };
 function applyScreenTheme(id){
   var el=document.getElementById('sp-dynamic');if(!el)return;
