@@ -493,22 +493,33 @@ footer{background:var(--panel);border-top:1px solid var(--border);padding:36px 5
     <!-- Momentum Stocks Dropdown -->
     <div class="nav-item">
       <button class="nav-btn" style="color:#f97316;font-weight:600;">📶 Momentum Stocks <span class="arrow">▾</span></button>
-      <div class="dd-mega two-col" style="min-width:480px;left:0;transform:none;">
+      <div class="dd-mega three-col" style="min-width:680px;left:0;transform:none;">
         <div>
           <div class="dd-col-title">Breakout Logs</div>
           <button class="dd-link" onclick="openScreen('donchian')"><span class="ico">🏹</span><span class="name">Donchian 20D</span></button>
+          <div class="dd-col-title" style="margin-top:14px;">Trend & Strength</div>
+          <button class="dd-link" onclick="openScreen('trendcont')"><span class="ico">🚀</span><span class="name">Trend Continuation</span></button>
+          <button class="dd-link" onclick="openScreen('rsleaders')"><span class="ico">🏅</span><span class="name">RS Leaders</span></button>
+          <button class="dd-link" onclick="openScreen('ltleader')"><span class="ico">👑</span><span class="name">Long-Term Leader</span></button>
+          <button class="dd-link" onclick="openScreen('strongclose')"><span class="ico">✅</span><span class="name">Strong Candle Close</span></button>
         </div>
         <div>
-          <div class="dd-col-title">Combo Screens</div>
-          <button class="dd-link" onclick="openScreen('trendcont')"><span class="ico">🚀</span><span class="name">Trend Continuation</span></button>
+          <div class="dd-col-title">Breakouts & Entries</div>
           <button class="dd-link" onclick="openScreen('freshbreak')"><span class="ico">🏁</span><span class="name">Fresh Breakout</span></button>
           <button class="dd-link" onclick="openScreen('earlysetup')"><span class="ico">🔭</span><span class="name">Early Setup</span></button>
-          <button class="dd-link" onclick="openScreen('reversalwatch')"><span class="ico">🔨</span><span class="name">Reversal Watch</span></button>
           <button class="dd-link" onclick="openScreen('volsurge')"><span class="ico">💥</span><span class="name">Volume Surge Breakout</span></button>
-          <button class="dd-link" onclick="openScreen('quietaccum')"><span class="ico">🤫</span><span class="name">Quiet Accumulation</span></button>
           <button class="dd-link" onclick="openScreen('momsqueeze')"><span class="ico">🌀</span><span class="name">Momentum Squeeze</span></button>
-          <button class="dd-link" onclick="openScreen('strongclose')"><span class="ico">✅</span><span class="name">Strong Candle Close</span></button>
+          <button class="dd-link" onclick="openScreen('gapgo')"><span class="ico">🎢</span><span class="name">Gap &amp; Go</span></button>
+          <button class="dd-link" onclick="openScreen('rangeexp')"><span class="ico">📐</span><span class="name">Range Expansion Day</span></button>
           <button class="dd-link" onclick="openScreen('fnomom')"><span class="ico">⚡</span><span class="name">F&amp;O Momentum</span></button>
+        </div>
+        <div>
+          <div class="dd-col-title">Accumulation & Reversal</div>
+          <button class="dd-link" onclick="openScreen('quietaccum')"><span class="ico">🤫</span><span class="name">Quiet Accumulation</span></button>
+          <button class="dd-link" onclick="openScreen('buydip')"><span class="ico">🎯</span><span class="name">Buy the Dip</span></button>
+          <button class="dd-link" onclick="openScreen('reversalwatch')"><span class="ico">🔨</span><span class="name">Reversal Watch</span></button>
+          <button class="dd-link" onclick="openScreen('contraaccum')"><span class="ico">🔍</span><span class="name">Contrarian Accumulation</span></button>
+          <div class="dd-col-title" style="margin-top:14px;">Avoid List</div>
           <button class="dd-link" onclick="openScreen('weakbounce')"><span class="ico">🚫</span><span class="name">Weak Bounce</span></button>
           <button class="dd-link" onclick="openScreen('dangerlist')"><span class="ico">⚠️</span><span class="name">Danger List</span></button>
         </div>
@@ -1698,6 +1709,38 @@ const SCREENS={
       return wr.filter(r=>_wkDnSet.has(r.s)&&r.cpos<=20&&r.dp!==undefined&&r.dp<S.delLow).sort((a,b)=>a.cpos-b.cpos);},
     cols:['Symbol','LTP','% Chg','Close Pos','Del %','RS'],
     row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:'r'},{v:r.cpos.toFixed(0)+'%',cls:'r'},{v:r.dp.toFixed(1)+'%',cls:'r'},{v:fp(r.rs),cls:pc(r.rs)}]},
+  rsleaders:{name:'RS Leaders',desc:'RS ≥70 + Weekly Uptrend W↑ + High Volume Leader — outperforming the index AND trending, on real volume',icon:'🏅',
+    fn:recs=>recs.filter(r=>r.rs>=70&&_wkUpSet.has(r.s)&&r.l>S.price&&!isNaN(r.v)).sort((a,b)=>b.rs-a.rs),
+    cols:['Symbol','LTP','% Chg','RS','Volume','30D %','365D %'],
+    row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:fp(r.rs),cls:'g'},fv(r.v),{v:fp(r.d30),cls:pc(r.d30)},{v:fp(r.d365),cls:pc(r.d365)}]},
+  buydip:{name:'Buy the Dip (Strong Stocks)',desc:'RS ≥70 + Mid-Range pullback + Delivery ≥60% — a strong stock cooling off, not breaking down, institutions still holding',icon:'🎯',
+    fn:recs=>{const dm=delivByDate[selectedDate]||{};
+      return recs.filter(r=>r.rs>=70&&Math.abs(r.c)<=S.midMax&&dm[r.s]>=S.delHigh)
+        .map(r=>({...r,dp:dm[r.s]})).sort((a,b)=>b.rs-a.rs);},
+    cols:['Symbol','LTP','% Chg','RS','Del %','30D %','365D %'],
+    row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:fp(r.rs),cls:'g'},{v:r.dp.toFixed(1)+'%',cls:'g'},{v:fp(r.d30),cls:pc(r.d30)},{v:fp(r.d365),cls:pc(r.d365)}]},
+  gapgo:{name:'Gap & Go',desc:'Gap Up + High Volume Leader + Candle Close top 80% — gapped up, stayed strong all day, closed near the high, not a fade',icon:'🎢',
+    fn:recs=>{const wr=recs.map(r=>({...r,gp:(r.o&&r.p)?((r.o-r.p)/r.p*100):NaN,cpos:(r.dh&&r.dl&&r.dh!==r.dl)?((r.l-r.dl)/(r.dh-r.dl)*100):NaN}));
+      return wr.filter(r=>!isNaN(r.gp)&&r.gp>=S.gap&&r.l>S.price&&!isNaN(r.v)&&r.cpos>=80).sort((a,b)=>b.v-a.v);},
+    cols:['Symbol','LTP','% Chg','Gap %','Close Pos','Volume','RS'],
+    row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:'g'},{v:fp(r.gp),cls:'g'},{v:r.cpos.toFixed(0)+'%',cls:'g'},fv(r.v),{v:fp(r.rs),cls:pc(r.rs)}]},
+  ltleader:{name:'Long-Term Leader',desc:'365D % strong performer + within 52W-high band + Weekly Uptrend W↑ — multi-month winners still making fresh highs',icon:'👑',
+    fn:recs=>recs.map(r=>({...r,distH:(r.h&&r.l)?((r.h-r.l)/r.h*100):NaN}))
+      .filter(r=>r.d365>=30&&!isNaN(r.distH)&&r.distH<=S.p52max&&_wkUpSet.has(r.s))
+      .sort((a,b)=>b.d365-a.d365),
+    cols:['Symbol','LTP','% Chg','Dist 52H%','365D %','RS'],
+    row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:r.distH.toFixed(2)+'%',cls:''},{v:fp(r.d365),cls:'g'},{v:fp(r.rs),cls:pc(r.rs)}]},
+  contraaccum:{name:'Contrarian Accumulation',desc:'New N-Day Low + Delivery ≥60% + high Traded Value ₹Cr — price falling but institutions quietly buying the dip, early reversal radar',icon:'🔍',
+    fn:recs=>{const dm=delivByDate[selectedDate]||{};
+      return recs.filter(r=>r.c<0&&dm[r.s]>=S.delHigh&&!isNaN(r.cr)&&r.cr>0)
+        .map(r=>({...r,dp:dm[r.s]})).sort((a,b)=>b.cr-a.cr);},
+    cols:['Symbol','LTP','% Chg','Del %','₹ Cr','RS'],
+    row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:'r'},{v:r.dp.toFixed(1)+'%',cls:'g'},{v:'₹'+fn(r.cr,1),style:'color:var(--cyan)'},{v:fp(r.rs),cls:pc(r.rs)}]},
+  rangeexp:{name:'Range Expansion Day',desc:'Intraday Range % ≥3 + High Volume Leader + RS positive — breaking out of the recent tight range today with real participation',icon:'📐',
+    fn:recs=>{const wr=recs.map(r=>({...r,rng:(r.dh&&r.dl&&r.p)?((r.dh-r.dl)/r.p*100):NaN}));
+      return wr.filter(r=>!isNaN(r.rng)&&r.rng>=3&&r.l>S.price&&!isNaN(r.v)&&r.rs>0).sort((a,b)=>b.rng-a.rng);},
+    cols:['Symbol','LTP','% Chg','Range %','Volume','RS'],
+    row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:r.rng.toFixed(2)+'%',cls:''},fv(r.v),{v:fp(r.rs),cls:'g'}]},
 };
 
 // ── Render dynamic screen ───────────────────────────────────
@@ -2309,7 +2352,9 @@ var SCREEN_THEMES={
   trendcont:'theme-green',freshbreak:'theme-amber',earlysetup:'theme-purple',
   reversalwatch:'theme-cyan',dangerlist:'theme-red',
   volsurge:'theme-orange',quietaccum:'theme-teal',momsqueeze:'theme-purple',
-  strongclose:'theme-green',fnomom:'theme-amber',weakbounce:'theme-red'
+  strongclose:'theme-green',fnomom:'theme-amber',weakbounce:'theme-red',
+  rsleaders:'theme-green',buydip:'theme-cyan',gapgo:'theme-blue',
+  ltleader:'theme-amber',contraaccum:'theme-purple',rangeexp:'theme-orange'
 };
 function applyScreenTheme(id){
   var el=document.getElementById('sp-dynamic');if(!el)return;
