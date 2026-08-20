@@ -504,6 +504,12 @@ footer{background:var(--panel);border-top:1px solid var(--border);padding:36px 5
           <button class="dd-link" onclick="openScreen('freshbreak')"><span class="ico">🏁</span><span class="name">Fresh Breakout</span></button>
           <button class="dd-link" onclick="openScreen('earlysetup')"><span class="ico">🔭</span><span class="name">Early Setup</span></button>
           <button class="dd-link" onclick="openScreen('reversalwatch')"><span class="ico">🔨</span><span class="name">Reversal Watch</span></button>
+          <button class="dd-link" onclick="openScreen('volsurge')"><span class="ico">💥</span><span class="name">Volume Surge Breakout</span></button>
+          <button class="dd-link" onclick="openScreen('quietaccum')"><span class="ico">🤫</span><span class="name">Quiet Accumulation</span></button>
+          <button class="dd-link" onclick="openScreen('momsqueeze')"><span class="ico">🌀</span><span class="name">Momentum Squeeze</span></button>
+          <button class="dd-link" onclick="openScreen('strongclose')"><span class="ico">✅</span><span class="name">Strong Candle Close</span></button>
+          <button class="dd-link" onclick="openScreen('fnomom')"><span class="ico">⚡</span><span class="name">F&amp;O Momentum</span></button>
+          <button class="dd-link" onclick="openScreen('weakbounce')"><span class="ico">🚫</span><span class="name">Weak Bounce</span></button>
           <button class="dd-link" onclick="openScreen('dangerlist')"><span class="ico">⚠️</span><span class="name">Danger List</span></button>
         </div>
       </div>
@@ -1658,6 +1664,40 @@ const SCREENS={
         .sort((a,b)=>a.c-b.c);},
     cols:['Symbol','LTP','% Chg','RS','Del %','30D %'],
     row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:'r'},{v:fp(r.rs),cls:pc(r.rs)},r.dp!==undefined?{v:r.dp.toFixed(1)+'%',cls:r.dp<30?'r':''}:'—',{v:fp(r.d30),cls:pc(r.d30)}]},
+  volsurge:{name:'Volume Surge Breakout',desc:'High Volume Leader + Top Traded Value ₹Cr + Big Move ≥5% — heavy money on a strong directional day',icon:'💥',
+    fn:recs=>{const wr=recs.filter(r=>r.l>S.price&&!isNaN(r.v)&&!isNaN(r.cr)&&r.cr>0&&Math.abs(r.c)>=S.big);
+      return wr.sort((a,b)=>b.cr-a.cr);},
+    cols:['Symbol','LTP','% Chg','RS','Volume','₹ Cr','30D %','365D %'],
+    row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:fp(r.rs),cls:pc(r.rs)},fv(r.v),{v:'₹'+fn(r.cr,1),style:'color:var(--cyan)'},{v:fp(r.d30),cls:pc(r.d30)},{v:fp(r.d365),cls:pc(r.d365)}]},
+  quietaccum:{name:'Quiet Accumulation',desc:'Sideways Stocks + Rising Delivery + Delivery ≥60% — smart money loading up before the stock moves',icon:'🤫',
+    fn:recs=>{const dm=delivByDate[selectedDate]||{};
+      return recs.filter(r=>r.c>=S.sideMin&&r.c<=S.sideMax&&dm[r.s]>=S.delHigh)
+        .map(r=>({...r,dp:dm[r.s]})).sort((a,b)=>b.dp-a.dp);},
+    cols:['Symbol','LTP','% Chg','RS','Del %','30D %','365D %'],
+    row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:fp(r.rs),cls:pc(r.rs)},{v:r.dp.toFixed(1)+'%',cls:'g'},{v:fp(r.d30),cls:pc(r.d30)},{v:fp(r.d365),cls:pc(r.d365)}]},
+  momsqueeze:{name:'Momentum Squeeze',desc:'NR7/NR4 tight range + Sideways + High Volume Leader — range compressing with volume building = pressure before breakout',icon:'🌀',
+    fn:recs=>{const wr=recs.map(r=>({...r,rng:(r.dh&&r.dl&&r.p)?((r.dh-r.dl)/r.p*100):NaN}));
+      return wr.filter(r=>!isNaN(r.rng)&&r.rng<=2.5&&r.c>=S.sideMin&&r.c<=S.sideMax&&r.l>S.price&&!isNaN(r.v))
+        .sort((a,b)=>b.v-a.v);},
+    cols:['Symbol','LTP','% Chg','Range %','Volume','RS'],
+    row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:r.rng.toFixed(2)+'%',cls:''},fv(r.v),{v:fp(r.rs),cls:pc(r.rs)}]},
+  strongclose:{name:'Strong Candle Close',desc:'Candle Close top 80% + Weekly Uptrend W↑ + Delivery ≥60% — closing near the day high, in an uptrend, institutions buying',icon:'✅',
+    fn:recs=>{const dm=delivByDate[selectedDate]||{};
+      const wr=recs.map(r=>({...r,cpos:(r.dh&&r.dl&&r.dh!==r.dl)?((r.l-r.dl)/(r.dh-r.dl)*100):NaN,dp:dm[r.s]}));
+      return wr.filter(r=>r.cpos>=80&&_wkUpSet.has(r.s)&&r.dp!==undefined&&r.dp>=S.delHigh).sort((a,b)=>b.cpos-a.cpos);},
+    cols:['Symbol','LTP','% Chg','Close Pos','Del %','RS'],
+    row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:'g'},{v:r.cpos.toFixed(0)+'%',cls:'g'},{v:r.dp.toFixed(1)+'%',cls:'g'},{v:fp(r.rs),cls:pc(r.rs)}]},
+  fnomom:{name:'F&O Momentum',desc:'F&O Eligible + Big Move ≥5% + High Volume Leader — big movers restricted to liquid, F&O-eligible names',icon:'⚡',
+    fn:recs=>{const set=new Set(SECTORS['F&O STOCKS'].stocks);
+      return recs.filter(r=>set.has(r.s)&&Math.abs(r.c)>=S.big&&r.l>S.price&&!isNaN(r.v)).sort((a,b)=>b.v-a.v);},
+    cols:['Symbol','LTP','% Chg','RS','Volume','30D %','365D %'],
+    row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:fp(r.rs),cls:pc(r.rs)},fv(r.v),{v:fp(r.d30),cls:pc(r.d30)},{v:fp(r.d365),cls:pc(r.d365)}]},
+  weakbounce:{name:'Weak Bounce',desc:'Weekly Downtrend W↓ + Candle Close bottom 20% + Delivery <30% — pullback likely to fail, pairs with Danger List',icon:'🚫',
+    fn:recs=>{const dm=delivByDate[selectedDate]||{};
+      const wr=recs.map(r=>({...r,cpos:(r.dh&&r.dl&&r.dh!==r.dl)?((r.l-r.dl)/(r.dh-r.dl)*100):NaN,dp:dm[r.s]}));
+      return wr.filter(r=>_wkDnSet.has(r.s)&&r.cpos<=20&&r.dp!==undefined&&r.dp<S.delLow).sort((a,b)=>a.cpos-b.cpos);},
+    cols:['Symbol','LTP','% Chg','Close Pos','Del %','RS'],
+    row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:'r'},{v:r.cpos.toFixed(0)+'%',cls:'r'},{v:r.dp.toFixed(1)+'%',cls:'r'},{v:fp(r.rs),cls:pc(r.rs)}]},
 };
 
 // ── Render dynamic screen ───────────────────────────────────
@@ -2267,7 +2307,9 @@ var SCREEN_THEMES={
   delhi:'theme-green',dello:'theme-red',ddstreak:'theme-amber',
   risingdel:'theme-green',dd3plus:'theme-amber',multi:'theme-coral',
   trendcont:'theme-green',freshbreak:'theme-amber',earlysetup:'theme-purple',
-  reversalwatch:'theme-cyan',dangerlist:'theme-red'
+  reversalwatch:'theme-cyan',dangerlist:'theme-red',
+  volsurge:'theme-orange',quietaccum:'theme-teal',momsqueeze:'theme-purple',
+  strongclose:'theme-green',fnomom:'theme-amber',weakbounce:'theme-red'
 };
 function applyScreenTheme(id){
   var el=document.getElementById('sp-dynamic');if(!el)return;
