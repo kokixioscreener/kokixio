@@ -493,10 +493,18 @@ footer{background:var(--panel);border-top:1px solid var(--border);padding:36px 5
     <!-- Momentum Stocks Dropdown -->
     <div class="nav-item">
       <button class="nav-btn" style="color:#f97316;font-weight:600;">📶 Momentum Stocks <span class="arrow">▾</span></button>
-      <div class="dd-mega" style="min-width:220px;left:0;transform:none;">
+      <div class="dd-mega two-col" style="min-width:480px;left:0;transform:none;">
         <div>
           <div class="dd-col-title">Breakout Logs</div>
           <button class="dd-link" onclick="openScreen('donchian')"><span class="ico">🏹</span><span class="name">Donchian 20D</span></button>
+        </div>
+        <div>
+          <div class="dd-col-title">Combo Screens</div>
+          <button class="dd-link" onclick="openScreen('trendcont')"><span class="ico">🚀</span><span class="name">Trend Continuation</span></button>
+          <button class="dd-link" onclick="openScreen('freshbreak')"><span class="ico">🏁</span><span class="name">Fresh Breakout</span></button>
+          <button class="dd-link" onclick="openScreen('earlysetup')"><span class="ico">🔭</span><span class="name">Early Setup</span></button>
+          <button class="dd-link" onclick="openScreen('reversalwatch')"><span class="ico">🔨</span><span class="name">Reversal Watch</span></button>
+          <button class="dd-link" onclick="openScreen('dangerlist')"><span class="ico">⚠️</span><span class="name">Danger List</span></button>
         </div>
       </div>
     </div>
@@ -1617,6 +1625,39 @@ const SCREENS={
     fn:recs=>{const set=new Set(SECTORS['F&O STOCKS'].stocks);return recs.filter(r=>set.has(r.s)).sort((a,b)=>b.c-a.c);},
     cols:['Symbol','LTP','% Chg','RS','Vol','30D %','365D %'],
     row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:fp(r.rs),cls:pc(r.rs)},fv(r.v),{v:fp(r.d30),cls:pc(r.d30)},{v:fp(r.d365),cls:pc(r.d365)}]},
+  trendcont:{name:'Trend Continuation',desc:'Weekly Uptrend W↑ + 3+ consecutive up days + Delivery ≥60% — established uptrend with real buying',icon:'🚀',
+    fn:recs=>{const dm=delivByDate[selectedDate]||{};
+      return recs.filter(r=>_wkUpSet.has(r.s)&&_consecMap[r.s]&&_consecMap[r.s].up>=3&&dm[r.s]>=S.delHigh)
+        .map(r=>({...r,dp:dm[r.s]})).sort((a,b)=>b.c-a.c);},
+    cols:['Symbol','LTP','% Chg','RS','Del %','30D %','365D %'],
+    row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:'g'},{v:fp(r.rs),cls:pc(r.rs)},{v:r.dp.toFixed(1)+'%',cls:'g'},{v:fp(r.d30),cls:pc(r.d30)},{v:fp(r.d365),cls:pc(r.d365)}]},
+  freshbreak:{name:'Fresh Breakout',desc:'New closing high + High Volume Leader + Delivery ≥60% — breakout backed by institutions, not just noise',icon:'🏁',
+    fn:recs=>{const dm=delivByDate[selectedDate]||{};
+      return recs.filter(r=>r.c>0&&r.l>S.price&&!isNaN(r.v)&&dm[r.s]>=S.delHigh)
+        .map(r=>({...r,dp:dm[r.s]})).sort((a,b)=>b.v-a.v);},
+    cols:['Symbol','LTP','% Chg','RS','Volume','Del %','30D %','365D %'],
+    row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:'g'},{v:fp(r.rs),cls:pc(r.rs)},fv(r.v),{v:r.dp.toFixed(1)+'%',cls:'g'},{v:fp(r.d30),cls:pc(r.d30)},{v:fp(r.d365),cls:pc(r.d365)}]},
+  earlysetup:{name:'Early Setup',desc:'NR7/NR4 tight range + within 52W-high band + Delivery ≥60% — coiled stocks building conviction before a move',icon:'🔭',
+    fn:recs=>{const dm=delivByDate[selectedDate]||{};
+      const wr=recs.map(r=>({...r,rng:(r.dh&&r.dl&&r.p)?((r.dh-r.dl)/r.p*100):NaN,distH:(r.h&&r.l)?((r.h-r.l)/r.h*100):NaN}));
+      return wr.filter(r=>!isNaN(r.rng)&&r.rng<=2.5&&!isNaN(r.distH)&&r.distH<=S.p52max&&dm[r.s]>=S.delHigh)
+        .map(r=>({...r,dp:dm[r.s]})).sort((a,b)=>a.rng-b.rng);},
+    cols:['Symbol','LTP','% Chg','Range %','Dist 52H%','Del %','RS'],
+    row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:r.rng.toFixed(2)+'%',cls:''},{v:r.distH.toFixed(2)+'%',cls:''},{v:r.dp.toFixed(1)+'%',cls:'g'},{v:fp(r.rs),cls:pc(r.rs)}]},
+  reversalwatch:{name:'Reversal Watch',desc:'Hammer candle (long lower shadow) + Delivery ≥60% — bottoming pattern with institutional support',icon:'🔨',
+    fn:recs=>{const dm=delivByDate[selectedDate]||{};
+      return recs.map(r=>{const body=Math.abs(r.l-r.o)/r.p*100;const ls=(Math.min(r.o,r.l)-r.dl)/r.p*100;return{...r,body,ls,dp:dm[r.s]};})
+        .filter(r=>r.ls>=S.shadow&&r.body<=S.body&&r.ls>=2*Math.max(r.body,0.01)&&r.dp!==undefined&&r.dp>=S.delHigh)
+        .sort((a,b)=>b.ls-a.ls);},
+    cols:['Symbol','LTP','% Chg','Shadow %','Del %','RS'],
+    row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:r.ls.toFixed(2)+'%',cls:'g'},{v:r.dp.toFixed(1)+'%',cls:'g'},{v:fp(r.rs),cls:pc(r.rs)}]},
+  dangerlist:{name:'Danger List',desc:'Weekly Downtrend W↓, Shooting Star or Delivery <30% — avoid new entries / consider exits',icon:'⚠️',
+    fn:recs=>{const dm=delivByDate[selectedDate]||{};
+      return recs.map(r=>{const body=Math.abs(r.l-r.o)/r.p*100;const us=(r.dh-Math.max(r.o,r.l))/r.p*100;return{...r,body,us,dp:dm[r.s]};})
+        .filter(r=>_wkDnSet.has(r.s)||(r.us>=S.shadow&&r.body<=S.body)||(r.dp!==undefined&&r.dp<S.delLow))
+        .sort((a,b)=>a.c-b.c);},
+    cols:['Symbol','LTP','% Chg','RS','Del %','30D %'],
+    row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:'r'},{v:fp(r.rs),cls:pc(r.rs)},r.dp!==undefined?{v:r.dp.toFixed(1)+'%',cls:r.dp<30?'r':''}:'—',{v:fp(r.d30),cls:pc(r.d30)}]},
 };
 
 // ── Render dynamic screen ───────────────────────────────────
@@ -2224,7 +2265,9 @@ var SCREEN_THEMES={
   nr7:'theme-purple',nr4:'theme-blue',hammer:'theme-cyan',star:'theme-amber',
   ndh:'theme-amber',ndl:'theme-orange','52prox':'theme-purple',
   delhi:'theme-green',dello:'theme-red',ddstreak:'theme-amber',
-  risingdel:'theme-green',dd3plus:'theme-amber',multi:'theme-coral'
+  risingdel:'theme-green',dd3plus:'theme-amber',multi:'theme-coral',
+  trendcont:'theme-green',freshbreak:'theme-amber',earlysetup:'theme-purple',
+  reversalwatch:'theme-cyan',dangerlist:'theme-red'
 };
 function applyScreenTheme(id){
   var el=document.getElementById('sp-dynamic');if(!el)return;
