@@ -35,6 +35,12 @@ nav{position:fixed;top:0;left:0;right:0;z-index:300;display:flex;align-items:cen
 .open-btn{background:var(--coral);color:#fff;border:none;padding:10px 20px;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;text-decoration:none;transition:all .2s;}
 .open-btn:hover{background:var(--coral2);transform:translateY(-1px);}
 
+/* ─── COPY BUTTON ──────────────────────────────────────── */
+.sym-cell{display:inline-flex;align-items:center;gap:6px;}
+.copy-btn{opacity:0;transition:opacity .15s;cursor:pointer;background:none;border:none;font-size:12px;line-height:1;padding:2px 3px;border-radius:3px;color:var(--cyan,#22d3ee);}
+.copy-btn:hover{background:rgba(34,211,238,.15);}
+tr:hover .copy-btn,.sym-cell:hover .copy-btn{opacity:1;}
+
 /* ─── MEGA DROPDOWN ────────────────────────────────────── */
 .dd-mega{
   display:none;position:absolute;top:calc(100% + 8px);left:50%;
@@ -1826,9 +1832,9 @@ function renderSPTable(rows,def){
     const cells=def.row(r);
     return'<tr>'+cells.map((c,i)=>{
       if(i===0){
-        // Symbol cell — always add history badges
+        // Symbol cell — always add history badges + copy button
         const sym=typeof c==='string'?c:(c&&c.v?c.v:String(c));
-        return`<td style="font-weight:600;">${sym}${symBadges(sym)}</td>`;
+        return`<td style="font-weight:600;"><span class="sym-cell">${sym}<button class="copy-btn" title="Copy symbol" onclick="copyToClipboard('${sym}',event)">📋</button></span>${symBadges(sym)}</td>`;
       }
       if(typeof c==='object'&&c!==null&&'v'in c){
         const st=c.style?` style="${c.style}"`:'';
@@ -1837,6 +1843,24 @@ function renderSPTable(rows,def){
       return`<td>${c}</td>`;
     }).join('')+'</tr>';
   }).join('');
+}
+
+// ── Copy symbol ─────────────────────────────────────────────
+function copyToClipboard(sym,event){
+  if(event){event.stopPropagation();event.preventDefault();}
+  const done=function(){toast('Copied: '+sym);};
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(sym).then(done).catch(function(){fallbackCopy(sym);done();});
+  }else{
+    fallbackCopy(sym);done();
+  }
+}
+function fallbackCopy(text){
+  const ta=document.createElement('textarea');
+  ta.value=text;ta.style.position='fixed';ta.style.opacity='0';
+  document.body.appendChild(ta);ta.select();
+  try{document.execCommand('copy');}catch(e){}
+  document.body.removeChild(ta);
 }
 
 // ── Toast ────────────────────────────────────────────────────
