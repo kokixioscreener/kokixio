@@ -2966,8 +2966,10 @@ function renderDonchianScreen(){
     return;
   }
   container.innerHTML=log.slice().reverse().map(function(entry){
+    if(!_FNO_SET)_FNO_SET=new Set(SECTORS['F&O STOCKS'].stocks);
     var chips=entry.stocks.map(function(r){
-      return '<div class="dcl-chip"><span class="dcl-sym">'+r.s+'</span><span class="dcl-ltp">₹'+fn(r.l)+'</span><span class="dcl-chg '+pc(r.c)+'">'+fp(r.c)+'</span></div>';
+      var fno=_FNO_SET.has(r.s)?'<span style="font-size:8px;background:rgba(255,167,38,.15);color:#ffa726;border:1px solid rgba(255,167,38,.35);padding:1px 4px;border-radius:3px;margin-left:4px;font-family:JetBrains Mono,monospace;vertical-align:middle;">F&O</span>':'';
+      return '<div class="dcl-chip"><span class="dcl-sym">'+r.s+fno+'</span><span class="dcl-ltp">₹'+fn(r.l)+'</span><span class="dcl-chg '+pc(r.c)+'">'+fp(r.c)+'</span></div>';
     }).join('');
     return '<div class="dcl-day"><div class="dcl-date-row"><span class="dcl-date">📅 '+entry.date+'</span><span class="dcl-count">'+entry.stocks.length+' stock'+(entry.stocks.length>1?'s':'')+' broke 20D high</span></div><div class="dcl-grid">'+chips+'</div></div>';
   }).join('');
