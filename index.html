@@ -1307,8 +1307,8 @@ function parseMW(rows){
     if(sym.toUpperCase().includes('NIFTY 500')){niftyChg=n(row['% CHANGE']);continue;}
     if(!sym||sym==='SYMBOL')continue;
     const o=n(row.OPEN),p=n(row['PREV. CLOSE']),l=n(row.LTP),c=n(row['% CHANGE']),v=n(row['VOLUME (shares)']);
-    const dh=n(row.HIGH),dl=n(row.LOW),h=n(row['52W H']),w=n(row['52W L']);
-    const d30=n(row['30 D %CHNG']),d365=n(row['365 D %CHNG']),cr=n(row['VALUE (Crores)']);
+    const dh=n(row.HIGH),dl=n(row.LOW),h=n(row['52W H']??row['52 WEEK HIGH']),w=n(row['52W L']??row['52 WEEK LOW']);
+    const d30=n(row['30 D %CHNG']),d365=n(row['365 D %CHNG']),cr=n(row['VALUE (Crores)']??row['VALUE (₹ Crores)']);
     if(isNaN(l)||isNaN(p))continue;
     const rs=(!isNaN(c)&&!isNaN(niftyChg))?parseFloat((c-niftyChg).toFixed(2)):NaN;
     out.push({s:sym,o,p,l,c,v,dh,dl,h,w,d30,d365,cr,rs});
