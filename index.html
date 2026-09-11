@@ -1706,7 +1706,7 @@ const SCREENS={
     cols:['Symbol','LTP','% Chg','RS','30D %','365D %'],
     row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:fp(r.rs),cls:pc(r.rs)},{v:fp(r.d30),cls:pc(r.d30)},{v:fp(r.d365),cls:pc(r.d365)}]},
   fno:{name:'F&O Stocks',desc:'NSE Futures & Options eligible stocks',icon:'🎯',
-    fn:recs=>{const set=new Set(SECTORS['F&O STOCKS'].stocks);return recs.filter(r=>set.has(r.s)).sort((a,b)=>b.c-a.c);},
+    fn:recs=>{const set=_FNO_SET||new Set(SECTORS['F&O STOCKS'].stocks);return recs.filter(r=>set.has(r.s)).sort((a,b)=>b.c-a.c);},
     cols:['Symbol','LTP','% Chg','RS','Vol','30D %','365D %'],
     row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:fp(r.rs),cls:pc(r.rs)},fv(r.v),{v:fp(r.d30),cls:pc(r.d30)},{v:fp(r.d365),cls:pc(r.d365)}]},
   trendcont:{name:'Trend Continuation',desc:'Weekly Uptrend W↑ + 3+ consecutive up days + Delivery ≥60% — established uptrend with real buying',icon:'🚀',
@@ -1766,7 +1766,7 @@ const SCREENS={
     cols:['Symbol','LTP','% Chg','Close Pos','Del %','RS'],
     row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:'g'},{v:r.cpos.toFixed(0)+'%',cls:'g'},{v:r.dp.toFixed(1)+'%',cls:'g'},{v:fp(r.rs),cls:pc(r.rs)}]},
   fnomom:{name:'F&O Momentum',desc:'F&O Eligible + Big Move ≥5% + High Volume Leader — big movers restricted to liquid, F&O-eligible names',icon:'⚡',
-    fn:recs=>{const set=new Set(SECTORS['F&O STOCKS'].stocks);
+    fn:recs=>{const set=_FNO_SET||new Set(SECTORS['F&O STOCKS'].stocks);
       return recs.filter(r=>set.has(r.s)&&Math.abs(r.c)>=S.big&&r.l>S.price&&!isNaN(r.v)).sort((a,b)=>b.v-a.v);},
     cols:['Symbol','LTP','% Chg','RS','Volume','30D %','365D %'],
     row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:fp(r.rs),cls:pc(r.rs)},fv(r.v),{v:fp(r.d30),cls:pc(r.d30)},{v:fp(r.d365),cls:pc(r.d365)}]},
