@@ -731,6 +731,7 @@ footer{background:var(--panel);border-top:1px solid var(--border);padding:36px 5
   <input type="file" id="mainFile" accept=".csv" style="display:none;">
   <input type="file" id="delivFile" accept=".csv" style="display:none;">
   <input type="file" id="foiFile" accept=".csv" style="display:none;">
+  <input type="file" id="foListFile" accept=".csv" style="display:none;">
   <div class="staging" id="staging">
     <span id="stagingTxt" style="font-size:13px;"></span>
     <input type="date" id="stagingDate" style="background:var(--panel2);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:6px;font-size:13px;font-family:'JetBrains Mono',monospace;">
@@ -749,6 +750,7 @@ footer{background:var(--panel);border-top:1px solid var(--border);padding:36px 5
       <button class="up-btn" onclick="toggleTracker()" id="trackerBtn">📅 File Tracker</button>
       <button class="up-btn" onclick="document.getElementById('delivFile').click()">📦 Del %</button>
       <button class="up-btn" onclick="document.getElementById('foiFile').click()">📊 OI Data</button>
+      <button class="up-btn" onclick="document.getElementById('foListFile').click()" title="Upload NSE MII Contract File to refresh F&amp;O eligibility list">🎯 F&amp;O List</button>
       <button class="up-btn primary" onclick="document.getElementById('mainFile').click()">↑ Upload CSV</button>
     </div>
   </div>
@@ -1099,6 +1101,7 @@ function _routeKey(key){
   if(key.indexOf('kx_del:')===0) return {table:'delivery_data',dateCol:'trade_date',dataCol:'records',date:key.slice(7)};
   if(key.indexOf('kx_foi:')===0) return {table:'fo_oi_data',dateCol:'trade_date',dataCol:'records',date:key.slice(7)};
   if(key==='kx_settings') return {table:'app_settings',idCol:'id',id:'default',dataCol:'settings'};
+  if(key==='kx_fo_list') return {table:'fo_symbols',idCol:'id',id:'current',dataCol:'data'};
   return null;
 }
 
@@ -1321,6 +1324,7 @@ let pendingRecs=null;
 document.getElementById('mainFile').addEventListener('change',e=>{if(e.target.files[0])handleMain(e.target.files[0]);e.target.value='';});
 document.getElementById('delivFile').addEventListener('change',e=>{if(e.target.files[0])handleDeliv(e.target.files[0]);e.target.value='';});
 document.getElementById('foiFile').addEventListener('change',e=>{if(e.target.files[0])handleFoi(e.target.files[0]);e.target.value='';});
+document.getElementById('foListFile').addEventListener('change',e=>{if(e.target.files[0])handleFoList(e.target.files[0]);e.target.value='';});
 
 function parseFoiFilename(name){
   const m=(name||'').match(/(\d{2})(\d{2})(\d{2})/);
@@ -1364,6 +1368,51 @@ function handleFoi(file){
     toast(`Futures OI saved · ${recs.length} stocks · ${dateStr}`);
     if(currentScreen==='fno-oi')renderFoiScreen();
   }});
+}
+
+// ── F&O eligibility list (NSE MII Contract File upload) ──────
+function parseFoListFilename(name){
+  const m=(name||'').match(/(\d{2})(\d{2})(\d{4})/);
+  if(!m)return null;
+  return `${m[3]}-${m[2]}-${m[1]}`;
+}
+function handleFoList(file){
+  Papa.parse(file,{header:true,skipEmptyLines:true,transformHeader:h=>h.trim(),transform:v=>typeof v==='string'?v.trim():v,complete:async res=>{
+    const set=new Set();
+    for(const row of res.data){
+      const t=row.FinInstrmNm||'';
+      const sym=(row.TckrSymb||'').trim();
+      if((t==='FUTSTK'||t==='OPTSTK')&&sym&&sym.toUpperCase().indexOf('TEST')===-1)set.add(sym);
+    }
+    const symbols=Array.from(set).sort();
+    if(!symbols.length){toast('No FUTSTK/OPTSTK symbols found in this file');return;}
+    const dateStr=parseFoListFilename(file.name)||new Date().toISOString().slice(0,10);
+    await saveFoList(dateStr,symbols);
+    toast(`F&O list updated · ${symbols.length} stocks · ${dateStr}`);
+    renderHome();renderDashTicker();
+    if(currentScreen)openScreen(currentScreen);
+  }});
+}
+async function saveFoList(dateStr,symbols){
+  await _store.set('kx_fo_list',JSON.stringify({date:dateStr,symbols}));
+  _FNO_SET=new Set(symbols);
+  foListMeta={date:dateStr,count:symbols.length};
+}
+async function loadFoList(){
+  try{
+    const r=await _store.get('kx_fo_list');
+    if(r&&r.value){
+      const d=JSON.parse(r.value);
+      if(d&&Array.isArray(d.symbols)&&d.symbols.length){
+        _FNO_SET=new Set(d.symbols);
+        foListMeta={date:d.date,count:d.symbols.length};
+        return;
+      }
+    }
+  }catch(e){console.error('loadFoList failed',e);}
+  // Fallback: no upload yet — keep the built-in static list (SECTORS['F&O STOCKS'])
+  _FNO_SET=new Set(SECTORS['F&O STOCKS'].stocks);
+  foListMeta=null;
 }
 
 function handleMain(file){
@@ -1412,6 +1461,7 @@ async function initDashboard(){
   await loadSettings();syncSettingsUI();await loadTheme();
   await loadDaysIndex();
   await loadFoiDaysIndex();
+  await loadFoList();
   if(daysIndex.length){
     selectedDate=daysIndex[daysIndex.length-1];
     await loadDay(selectedDate);
@@ -1890,6 +1940,7 @@ var _consecMap={};
 var _wkUpSet=new Set();
 var _wkDnSet=new Set();
 var _FNO_SET=null;
+var foListMeta=null; // {date, count} of the last uploaded F&O contract file, or null if using the built-in static list
 var _histMaps={};
 var trackerOpen=false;
 
