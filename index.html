@@ -1387,14 +1387,21 @@ function handleFoList(file){
     const symbols=Array.from(set).sort();
     if(!symbols.length){toast('No FUTSTK/OPTSTK symbols found in this file');return;}
     const dateStr=parseFoListFilename(file.name)||new Date().toISOString().slice(0,10);
-    await saveFoList(dateStr,symbols);
-    toast(`F&O list updated · ${symbols.length} stocks · ${dateStr}`);
-    renderHome();renderDashTicker();
-    if(currentScreen)openScreen(currentScreen);
+    try{
+      await saveFoList(dateStr,symbols);
+      toast(`F&O list updated · ${symbols.length} stocks · ${dateStr}`);
+      renderHome();renderDashTicker();
+      if(currentScreen)openScreen(currentScreen);
+    }catch(e){
+      console.error('F&O list save failed',e);
+      toast('F&O list save FAILED — check that the fo_symbols table exists in Supabase (see console)');
+    }
   }});
 }
 async function saveFoList(dateStr,symbols){
   await _store.set('kx_fo_list',JSON.stringify({date:dateStr,symbols}));
+  // Only update the live set after a confirmed successful save,
+  // so a failed save never silently leaves the UI showing unsaved data
   _FNO_SET=new Set(symbols);
   foListMeta={date:dateStr,count:symbols.length};
 }
