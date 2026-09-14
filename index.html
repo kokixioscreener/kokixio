@@ -496,6 +496,16 @@ footer{background:var(--panel);border-top:1px solid var(--border);padding:36px 5
       <button class="nav-btn" style="color:#26c6da;font-weight:600;" onclick="openScreen('fno-oi')">📊 Futures OI</button>
     </div>
 
+    <!-- 52-Week High -->
+    <div class="nav-item">
+      <button class="nav-btn" style="color:#66bb6a;font-weight:600;" onclick="openScreen('52wh')">🏔️ 52W High</button>
+    </div>
+
+    <!-- 52-Week Low -->
+    <div class="nav-item">
+      <button class="nav-btn" style="color:#ef5350;font-weight:600;" onclick="openScreen('52wl')">🕳️ 52W Low</button>
+    </div>
+
     <!-- Momentum Stocks Dropdown -->
     <div class="nav-item">
       <button class="nav-btn" style="color:#f97316;font-weight:600;">📶 Momentum Stocks <span class="arrow">▾</span></button>
@@ -1681,6 +1691,14 @@ const SCREENS={
     fn:recs=>recs.map(r=>({...r,distH:r.h&&r.l?(r.h-r.l)/r.h*100:NaN,distL:r.w&&r.l?(r.l-r.w)/r.w*100:NaN})).filter(r=>(!isNaN(r.distH)&&r.distH>=S.p52min&&r.distH<=S.p52max)||(!isNaN(r.distL)&&r.distL>=S.p52min&&r.distL<=S.p52max)).sort((a,b)=>(isNaN(a.distH)?999:a.distH)-(isNaN(b.distH)?999:b.distH)),
     cols:['Symbol','LTP','% Chg','Dist 52H%','Dist 52L%','RS','30D %','365D %'],
     row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},isNaN(r.distH)?'—':r.distH.toFixed(2)+'%',isNaN(r.distL)?'—':r.distL.toFixed(2)+'%',{v:fp(r.rs),cls:pc(r.rs)},{v:fp(r.d30),cls:pc(r.d30)},{v:fp(r.d365),cls:pc(r.d365)}]},
+  '52wh':{name:'52-Week High',desc:'Stocks currently at or breaking their 52-week high',icon:'🏔️',
+    fn:recs=>recs.map(r=>({...r,distH:r.h&&r.l?(r.h-r.l)/r.h*100:NaN})).filter(r=>!isNaN(r.distH)&&r.distH<=0).sort((a,b)=>a.distH-b.distH),
+    cols:['Symbol','LTP','% Chg','Dist 52H%','52W High','RS','30D %','365D %'],
+    row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:r.distH.toFixed(2)+'%',cls:'g'},fn(r.h),{v:fp(r.rs),cls:pc(r.rs)},{v:fp(r.d30),cls:pc(r.d30)},{v:fp(r.d365),cls:pc(r.d365)}]},
+  '52wl':{name:'52-Week Low',desc:'Stocks currently at or breaking their 52-week low',icon:'🕳️',
+    fn:recs=>recs.map(r=>({...r,distL:r.w&&r.l?(r.l-r.w)/r.w*100:NaN})).filter(r=>!isNaN(r.distL)&&r.distL<=0).sort((a,b)=>a.distL-b.distL),
+    cols:['Symbol','LTP','% Chg','Dist 52L%','52W Low','RS','30D %','365D %'],
+    row:r=>[r.s,fn(r.l),{v:fp(r.c),cls:pc(r.c)},{v:r.distL.toFixed(2)+'%',cls:'r'},fn(r.w),{v:fp(r.rs),cls:pc(r.rs)},{v:fp(r.d30),cls:pc(r.d30)},{v:fp(r.d365),cls:pc(r.d365)}]},
   delhi:{name:'High Delivery DEL↑ ≥60%',desc:'Institutional conviction — sustained buying/selling',icon:'🏦',
     fn:recs=>{const dm=delivByDate[selectedDate]||{};return recs.filter(r=>dm[r.s]>=S.delHigh).map(r=>({...r,dp:dm[r.s]})).sort((a,b)=>b.dp-a.dp);},
     cols:['Symbol','LTP','% Chg','RS','Del %','Vol','30D %','365D %'],
